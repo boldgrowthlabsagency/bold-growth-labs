@@ -1,0 +1,1896 @@
+/* ============================================================
+   MERIDIAN CABINETRY — concept build
+   Ink · Warm paper · Walnut · White oak · Oxidised brass
+
+   An architecture monograph about a millwork atelier, translated
+   to screen. Rules of the house:
+
+   · the grid is DECLARED. Measure marks, plate numbers,
+     dimension annotations and monospace specification tables are
+     visible furniture, not ornament.
+   · display type is set MODESTLY — clamp(1.9rem, 4.4vw, 4.2rem),
+     wide-tracked capitals at 0.16em — because the photography
+     and the annotation carry the page.
+   · a permanent rail runs the length of the document carrying
+     the running head and the plate count, the way a printed
+     monograph carries one. It is a declared margin: the page
+     ends where the rail begins, so nothing is ever overprinted.
+   · motion is measured — 0.4–0.7s on cubic-bezier(.65,0,.35,1),
+     symmetrical, so a movement arrives as deliberately as it
+     leaves. A plate wipes a precise distance and stops. A rule
+     extends to an exact length. A caption steps in. Only
+     transform / opacity / clip-path ever animate.
+   · brass is reserved for actions and active states. Walnut, oak
+     and ink carry everything else.
+   · corners are square. 1px is the largest radius on the page.
+
+   Every selector is namespaced `mrd-`.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   0 · tokens + reset
+   ------------------------------------------------------------ */
+
+.mrd-root {
+  --mrd-ink: #1F2321;
+  --mrd-paper: #E8E1D6;
+  --mrd-walnut: #5A3E2D;
+  --mrd-oak: #C8B08A;
+  --mrd-brass: #A98454;
+
+  /* derived, strictly from the five above */
+  --mrd-ink-70: rgba(31, 35, 33, 0.7);
+  --mrd-ink-52: rgba(31, 35, 33, 0.52);
+  --mrd-ink-38: rgba(31, 35, 33, 0.38);
+  --mrd-hair: rgba(31, 35, 33, 0.22);
+  --mrd-hair-soft: rgba(31, 35, 33, 0.12);
+  --mrd-paper-72: rgba(232, 225, 214, 0.72);
+  --mrd-paper-52: rgba(232, 225, 214, 0.52);
+  --mrd-hair-inv: rgba(232, 225, 214, 0.24);
+  --mrd-hair-inv-soft: rgba(232, 225, 214, 0.13);
+
+  --mrd-tone: var(--mrd-walnut);
+  --mrd-tone-soft: rgba(90, 62, 45, 0.55);
+
+  --mrd-disp: var(--font-sans), 'Helvetica Neue', Arial, sans-serif;
+  --mrd-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --mrd-mono: var(--font-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --mrd-ease: cubic-bezier(0.65, 0, 0.35, 1);
+  --mrd-rail: 46px;
+  --mrd-gut: clamp(20px, 4.2vw, 88px);
+
+  position: relative;
+  width: 100%;
+  padding-right: var(--mrd-rail);
+  background: var(--mrd-paper);
+  color: var(--mrd-ink);
+  font-family: var(--mrd-disp);
+  font-weight: 400;
+  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.mrd-root *,
+.mrd-root *::before,
+.mrd-root *::after { box-sizing: border-box; }
+
+.mrd-root h1,
+.mrd-root h2,
+.mrd-root p,
+.mrd-root dl,
+.mrd-root dd,
+.mrd-root dt,
+.mrd-root ol,
+.mrd-root li,
+.mrd-root figure,
+.mrd-root figcaption { margin: 0; padding: 0; }
+
+.mrd-root ol { list-style: none; }
+
+.mrd-root a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.mrd-root em,
+.mrd-root i { font-style: normal; }
+
+.mrd-root img { display: block; max-width: 100%; }
+
+.mrd-root :focus-visible {
+  outline: 1px solid var(--mrd-brass);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------
+   1 · shared devices — eyebrow, display, rules, captions, ticks,
+       dimension annotations, buttons
+   ------------------------------------------------------------ */
+
+.mrd-eyebrow {
+  display: block;
+  font-family: var(--mrd-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-52);
+}
+
+.mrd-eyebrow--inv { color: var(--mrd-paper-52); }
+
+.mrd-display {
+  font-family: var(--mrd-disp);
+  font-size: clamp(1.9rem, 4.4vw, 4.2rem);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-indent: 0.16em;
+  color: var(--mrd-ink);
+}
+
+.mrd-display--sm { font-size: clamp(1.4rem, 2.5vw, 2.3rem); }
+.mrd-display--inv { color: var(--mrd-paper); }
+
+.mrd-line {
+  display: block;
+  transform: translateY(16px);
+  opacity: 0;
+  transition:
+    transform 0.6s var(--mrd-ease),
+    opacity 0.6s var(--mrd-ease);
+}
+
+.mrd-in .mrd-line { transform: translateY(0); opacity: 1; }
+.mrd-in .mrd-line:nth-child(2) { transition-delay: 0.09s; }
+.mrd-in .mrd-line:nth-child(3) { transition-delay: 0.18s; }
+
+.mrd-sectno {
+  display: block;
+  font-family: var(--mrd-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--mrd-ink-52);
+}
+
+/* a hairline that extends to an exact length */
+.mrd-rule {
+  display: block;
+  height: 1px;
+  background: var(--mrd-ink);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.mrd-rule--ext {
+  transition: transform 0.65s var(--mrd-ease) 0.14s;
+}
+
+.mrd-in .mrd-rule--ext { transform: scaleX(1); }
+.mrd-rule--inv { background: var(--mrd-paper-72); }
+
+/* measure marks */
+.mrd-ticks {
+  display: block;
+  height: 9px;
+  background-image: repeating-linear-gradient(
+    to right,
+    currentColor 0 1px,
+    transparent 1px 10px
+  );
+  opacity: 0.4;
+}
+
+.mrd-ticks--v {
+  width: 9px;
+  height: auto;
+  flex: 1;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    currentColor 0 1px,
+    transparent 1px 10px
+  );
+}
+
+/* catalogue captions */
+.mrd-cap-pl {
+  display: block;
+  font-family: var(--mrd-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--mrd-brass);
+}
+
+.mrd-cap-body {
+  display: block;
+  font-family: var(--mrd-serif);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--mrd-ink-70);
+}
+
+.mrd-cap-body em {
+  display: block;
+  font-family: var(--mrd-mono);
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-38);
+  margin-top: 3px;
+}
+
+/* dimension annotation: end ticks, rule, monospace figure */
+.mrd-dim {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--mrd-ink-38);
+}
+
+.mrd-dim-cap {
+  display: block;
+  width: 1px;
+  height: 9px;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+.mrd-dim-line {
+  display: block;
+  height: 1px;
+  background: currentColor;
+  flex: 1 1 auto;
+  min-width: 14px;
+  opacity: 0.6;
+}
+
+.mrd-dim-fig {
+  font-family: var(--mrd-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.mrd-dim--body { margin-top: 22px; max-width: 420px; }
+
+/* buttons — brass hairline rectangle, and a text-and-rule variant */
+.mrd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mrd-disp);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-radius: 1px;
+  cursor: pointer;
+}
+
+.mrd-btn--brass {
+  border: 1px solid var(--mrd-brass);
+  color: var(--mrd-brass);
+  background: transparent;
+  padding: 13px 18px;
+  min-height: 44px;
+  transition:
+    color 0.45s var(--mrd-ease),
+    background-color 0.45s var(--mrd-ease);
+}
+
+.mrd-btn--brass:hover {
+  background: var(--mrd-brass);
+  color: var(--mrd-paper);
+}
+
+.mrd-btn--lg {
+  font-size: 12px;
+  padding: 17px 26px;
+  letter-spacing: 0.22em;
+}
+
+.mrd-btn--text {
+  padding: 12px 0 9px;
+  min-height: 44px;
+  color: var(--mrd-ink);
+  border-bottom: 1px solid var(--mrd-brass);
+}
+
+.mrd-btn--text-inv { color: var(--mrd-paper); }
+
+.mrd-arrow {
+  display: inline-block;
+  transform: translateX(0);
+  transition: transform 0.45s var(--mrd-ease);
+}
+
+.mrd-btn:hover .mrd-arrow { transform: translateX(5px); }
+
+/* ------------------------------------------------------------
+   2 · the running rail — a declared right margin
+   ------------------------------------------------------------ */
+
+.mrd-rail {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--mrd-rail);
+  border-left: 1px solid var(--mrd-hair);
+  background: var(--mrd-paper);
+  z-index: 30;
+  pointer-events: none;
+}
+
+.mrd-rail-in {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+  gap: 14px;
+}
+
+.mrd-rail-head,
+.mrd-rail-mid,
+.mrd-rail-foot {
+  writing-mode: vertical-rl;
+  font-family: var(--mrd-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.mrd-rail-head {
+  color: var(--mrd-ink-38);
+  max-height: 30vh;
+}
+
+.mrd-rail-mid {
+  color: var(--mrd-ink);
+  max-height: 26vh;
+}
+
+.mrd-rail-foot { color: var(--mrd-brass); }
+
+.mrd-rail-track {
+  display: block;
+  width: 1px;
+  flex: 1 1 auto;
+  min-height: 40px;
+  background: var(--mrd-hair-soft);
+  position: relative;
+}
+
+.mrd-rail-track i {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--mrd-brass);
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+}
+
+/* ------------------------------------------------------------
+   3 · nav — sparse, left-anchored, sticky
+   ------------------------------------------------------------ */
+
+.mrd-nav {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 56px);
+  padding: 14px var(--mrd-gut);
+  background: var(--mrd-paper);
+  border-bottom: 1px solid var(--mrd-hair);
+}
+
+.mrd-nav-mark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 0 0 auto;
+}
+
+.mrd-mark-name {
+  font-family: var(--mrd-disp);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.mrd-mark-rule {
+  display: block;
+  width: 1px;
+  height: 30px;
+  background: var(--mrd-hair);
+}
+
+.mrd-mark-sub {
+  display: block;
+  font-family: var(--mrd-disp);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-70);
+  line-height: 1.3;
+}
+
+.mrd-mark-sub em {
+  display: block;
+  font-family: var(--mrd-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: none;
+  color: var(--mrd-ink-38);
+  margin-top: 3px;
+}
+
+.mrd-nav-links {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 34px);
+  margin-left: auto;
+}
+
+.mrd-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-70);
+  position: relative;
+  transition: color 0.4s var(--mrd-ease);
+}
+
+.mrd-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 11px;
+  height: 1px;
+  background: var(--mrd-brass);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.45s var(--mrd-ease);
+}
+
+.mrd-nav-link:hover { color: var(--mrd-ink); }
+.mrd-nav-link:hover::after { transform: scaleX(1); }
+
+.mrd-nav-cta { flex: 0 0 auto; }
+
+/* ------------------------------------------------------------
+   4 · 01 · frontispiece
+   ------------------------------------------------------------ */
+
+.mrd-hero-type .mrd-eyebrow {
+  transform: translateY(10px);
+  opacity: 0;
+  transition:
+    transform 0.55s var(--mrd-ease),
+    opacity 0.55s var(--mrd-ease);
+}
+
+.mrd-hero.mrd-in .mrd-hero-type .mrd-eyebrow { transform: translateY(0); opacity: 1; }
+
+.mrd-hero .mrd-display { margin-top: 18px; }
+
+.mrd-hero-rule {
+  display: block;
+  height: 1px;
+  width: clamp(120px, 22vw, 300px);
+  margin-top: 26px;
+  background: var(--mrd-brass);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.6s var(--mrd-ease) 0.26s;
+}
+
+.mrd-hero.mrd-in .mrd-hero-rule { transform: scaleX(1); }
+
+.mrd-hero-stmt {
+  margin-top: 18px;
+  font-family: var(--mrd-serif);
+  font-size: clamp(15px, 1.25vw, 19px);
+  line-height: 1.55;
+  max-width: 46ch;
+  color: var(--mrd-paper-72);
+  transform: translateY(10px);
+  opacity: 0;
+  transition:
+    transform 0.55s var(--mrd-ease) 0.34s,
+    opacity 0.55s var(--mrd-ease) 0.34s;
+}
+
+.mrd-hero.mrd-in .mrd-hero-stmt { transform: translateY(0); opacity: 1; }
+
+.mrd-hero-cap .mrd-cap-body {
+  color: var(--mrd-paper-72);
+  font-size: 12.5px;
+  margin-top: 7px;
+}
+
+.mrd-hero-cap .mrd-cap-body em { color: var(--mrd-paper-52); font-size: 9.5px; }
+
+.mrd-hero-measure .mrd-ticks {
+  flex: 1 1 auto;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.7s var(--mrd-ease) 0.3s;
+}
+
+.mrd-hero.mrd-in .mrd-hero-measure .mrd-ticks { transform: scaleX(1); }
+
+/* ------------------------------------------------------------
+   5 · 02 · opening statement
+   ------------------------------------------------------------ */
+
+.mrd-stmt {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1.5fr) minmax(0, 0.78fr);
+  gap: clamp(24px, 3.6vw, 76px);
+  padding: clamp(64px, 9vw, 158px) var(--mrd-gut) clamp(56px, 7vw, 120px);
+  border-bottom: 1px solid var(--mrd-hair);
+}
+
+.mrd-stmt-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  color: var(--mrd-ink);
+}
+
+.mrd-stmt-side .mrd-ticks--v {
+  min-height: 90px;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  transition: transform 0.65s var(--mrd-ease) 0.1s;
+}
+
+.mrd-stmt.mrd-in .mrd-stmt-side .mrd-ticks--v { transform: scaleY(1); }
+
+.mrd-vfig {
+  writing-mode: vertical-rl;
+  font-family: var(--mrd-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-38);
+}
+
+.mrd-stmt-body { max-width: 62ch; }
+
+.mrd-lede {
+  margin-top: 22px;
+  font-family: var(--mrd-serif);
+  font-size: clamp(17px, 1.55vw, 24px);
+  line-height: 1.62;
+  color: var(--mrd-ink);
+  max-width: 62ch;
+}
+
+.mrd-stmt-body .mrd-rule--ext { margin: 30px 0; width: min(100%, 520px); }
+
+.mrd-stmt-sub {
+  font-family: var(--mrd-serif);
+  font-size: clamp(14px, 1.05vw, 16.5px);
+  line-height: 1.65;
+  color: var(--mrd-ink-52);
+  max-width: 54ch;
+}
+
+.mrd-stmt-body > .mrd-eyebrow,
+.mrd-stmt-body > .mrd-lede,
+.mrd-stmt-body > .mrd-stmt-sub,
+.mrd-stmt-body > .mrd-dim {
+  transform: translateY(12px);
+  opacity: 0;
+  transition:
+    transform 0.55s var(--mrd-ease),
+    opacity 0.55s var(--mrd-ease);
+}
+
+.mrd-stmt.mrd-in .mrd-stmt-body > .mrd-eyebrow,
+.mrd-stmt.mrd-in .mrd-stmt-body > .mrd-lede,
+.mrd-stmt.mrd-in .mrd-stmt-body > .mrd-stmt-sub,
+.mrd-stmt.mrd-in .mrd-stmt-body > .mrd-dim {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.mrd-stmt.mrd-in .mrd-stmt-body > .mrd-lede { transition-delay: 0.07s; }
+.mrd-stmt.mrd-in .mrd-stmt-body > .mrd-stmt-sub { transition-delay: 0.16s; }
+.mrd-stmt.mrd-in .mrd-stmt-body > .mrd-dim { transition-delay: 0.24s; }
+
+.mrd-stmt-meta {
+  border-top: 1px solid var(--mrd-ink);
+  align-self: start;
+}
+
+.mrd-stmt-meta > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--mrd-hair-soft);
+}
+
+.mrd-stmt-meta dt {
+  font-family: var(--mrd-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-38);
+}
+
+.mrd-stmt-meta dd {
+  font-family: var(--mrd-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--mrd-ink);
+  text-align: right;
+}
+
+.mrd-arc-head .mrd-display { margin-top: 14px; }
+
+.mrd-arc-cap .mrd-cap-body {
+  color: var(--mrd-paper-72);
+  margin-top: 6px;
+  max-width: 54ch;
+}
+
+.mrd-arc-cap .mrd-cap-body em { color: var(--mrd-paper-52); }
+.mrd-arc-cap .mrd-dim { color: var(--mrd-paper-52); }
+
+@keyframes mrd-step-in {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ------------------------------------------------------------
+   7 · 04 · the atelier — craft plate + specification schedule
+   ------------------------------------------------------------ */
+
+.mrd-proc {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.62fr);
+  gap: clamp(28px, 4vw, 88px);
+  padding: clamp(60px, 8vw, 140px) var(--mrd-gut) clamp(56px, 7vw, 124px);
+  align-items: start;
+  border-bottom: 1px solid var(--mrd-hair);
+}
+
+.mrd-proc-fig {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+}
+
+.mrd-proc-vdim {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--mrd-ink-38);
+  padding: 2px 0;
+}
+
+.mrd-proc-vdim i {
+  display: block;
+  width: 11px;
+  height: 1px;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+.mrd-proc-vdim::before,
+.mrd-proc-vdim::after {
+  content: '';
+  display: block;
+  width: 1px;
+  flex: 1 1 auto;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.mrd-proc-vdim span {
+  writing-mode: vertical-rl;
+  font-family: var(--mrd-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+}
+
+.mrd-proc-frame {
+  position: relative;
+  overflow: hidden;
+  background: var(--mrd-ink);
+  aspect-ratio: 4 / 5;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.65s var(--mrd-ease);
+}
+
+.mrd-proc.mrd-in .mrd-proc-frame { clip-path: inset(0 0 0 0); }
+
+.mrd-proc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.05);
+  transition: transform 0.7s var(--mrd-ease);
+}
+
+.mrd-proc.mrd-in .mrd-proc-img { transform: scale(1); }
+
+.mrd-proc-cap {
+  grid-column: 2;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mrd-hair);
+}
+
+.mrd-proc-cap .mrd-cap-body { margin-top: 6px; }
+
+.mrd-proc-body { min-width: 0; }
+
+.mrd-proc-body .mrd-display { margin-top: 16px; }
+
+.mrd-proc-intro {
+  margin-top: 18px;
+  font-family: var(--mrd-serif);
+  font-size: clamp(15px, 1.15vw, 18px);
+  line-height: 1.6;
+  color: var(--mrd-ink-70);
+  max-width: 56ch;
+}
+
+.mrd-steps {
+  margin-top: 34px;
+  border-top: 1px solid var(--mrd-ink);
+}
+
+.mrd-step {
+  display: grid;
+  grid-template-columns: 42px 132px minmax(0, 1fr) 96px 84px;
+  gap: 18px;
+  align-items: start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--mrd-hair-soft);
+  transform: translateY(12px);
+  opacity: 0;
+  transition:
+    transform 0.5s var(--mrd-ease),
+    opacity 0.5s var(--mrd-ease);
+  transition-delay: calc(var(--mrd-i) * 55ms);
+}
+
+.mrd-proc.mrd-in .mrd-step { transform: translateY(0); opacity: 1; }
+
+.mrd-step-n {
+  font-family: var(--mrd-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--mrd-brass);
+}
+
+.mrd-step-t {
+  font-family: var(--mrd-disp);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mrd-ink);
+}
+
+.mrd-step-d {
+  font-family: var(--mrd-serif);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--mrd-ink-70);
+}
+
+.mrd-step-dim,
+.mrd-step-w {
+  font-family: var(--mrd-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-38);
+}
+
+.mrd-step-w { text-align: right; }
+
+.mrd-step--head {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--mrd-hair);
+}
+
+.mrd-step--head .mrd-step-n,
+.mrd-step--head .mrd-step-t,
+.mrd-step--head .mrd-step-d,
+.mrd-step--head .mrd-step-dim,
+.mrd-step--head .mrd-step-w {
+  font-family: var(--mrd-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-38);
+  line-height: 1.2;
+}
+
+.mrd-proc-body .mrd-btn--text { margin-top: 34px; }
+
+/* ------------------------------------------------------------
+   8 · 05 · full plate
+   ------------------------------------------------------------ */
+
+.mrd-plate {
+  padding: 0 0 clamp(52px, 6vw, 104px);
+  border-bottom: 1px solid var(--mrd-hair);
+}
+
+.mrd-plate.mrd-in .mrd-plate-frame { clip-path: inset(0 0 0 0); }
+
+.mrd-plate.mrd-in .mrd-plate-img { transform: scale(1); }
+
+.mrd-plate.mrd-in .mrd-plate-cap { transform: translateY(0); opacity: 1; }
+
+.mrd-plate-cap .mrd-dim { align-self: center; }
+
+/* ------------------------------------------------------------
+   9 · 06 · colophon + close — paper-on-ink
+   ------------------------------------------------------------ */
+
+.mrd-close {
+  background: var(--mrd-ink);
+  color: var(--mrd-paper);
+  padding: clamp(64px, 9vw, 156px) var(--mrd-gut) clamp(44px, 5vw, 84px);
+}
+
+.mrd-close-in { max-width: 1180px; }
+
+.mrd-close .mrd-display { margin-top: 22px; }
+
+.mrd-close .mrd-rule--ext {
+  margin: 34px 0 0;
+  width: clamp(140px, 26vw, 380px);
+}
+
+.mrd-close-copy {
+  margin-top: 26px;
+  font-family: var(--mrd-serif);
+  font-size: clamp(15px, 1.25vw, 19px);
+  line-height: 1.6;
+  color: var(--mrd-paper-72);
+  max-width: 52ch;
+}
+
+.mrd-close-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(18px, 2.6vw, 44px);
+  margin-top: 40px;
+}
+
+.mrd-colophon {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0 clamp(18px, 2.4vw, 48px);
+  margin-top: clamp(48px, 6vw, 96px);
+  padding-top: 18px;
+  border-top: 1px solid var(--mrd-hair-inv);
+}
+
+.mrd-colophon > div {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--mrd-hair-inv-soft);
+}
+
+.mrd-colophon dt {
+  font-family: var(--mrd-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mrd-paper-52);
+}
+
+.mrd-colophon dd {
+  margin-top: 6px;
+  font-family: var(--mrd-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--mrd-paper);
+}
+
+.mrd-fiction {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px clamp(18px, 2.4vw, 44px);
+  align-items: start;
+  margin-top: clamp(30px, 3.6vw, 58px);
+  padding-top: 20px;
+  border-top: 1px solid var(--mrd-hair-inv);
+}
+
+.mrd-fiction-mark {
+  display: inline-block;
+  border: 1px solid var(--mrd-paper-52);
+  border-radius: 1px;
+  padding: 7px 11px;
+  font-family: var(--mrd-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--mrd-paper-72);
+  white-space: nowrap;
+}
+
+.mrd-fiction p {
+  font-family: var(--mrd-mono);
+  font-size: 10.5px;
+  line-height: 1.75;
+  letter-spacing: 0.03em;
+  color: var(--mrd-paper-52);
+  max-width: 78ch;
+}
+
+/* ------------------------------------------------------------
+   10 · tablet — 1080px and under
+   ------------------------------------------------------------ */
+
+@media (max-width: 1080px) {
+  .mrd-stmt {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .mrd-stmt-meta {
+    grid-column: 2;
+    margin-top: 12px;
+  }
+
+  .mrd-arc-grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+
+  .mrd-proc {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mrd-proc-fig {
+    max-width: 460px;
+  }
+
+  .mrd-step {
+    grid-template-columns: 38px 118px minmax(0, 1fr) 82px 74px;
+    gap: 14px;
+  }
+
+  .mrd-plate-cap {
+    grid-template-columns: 76px minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .mrd-plate-cap .mrd-dim { grid-column: 2 / -1; }
+
+  .mrd-colophon { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ------------------------------------------------------------
+   11 · mobile — 760px and under. Recomposed, not shrunk.
+   ------------------------------------------------------------ */
+
+@media (max-width: 760px) {
+  .mrd-root {
+    --mrd-rail: 26px;
+    --mrd-gut: 20px;
+  }
+
+  /* nav: mark and CTA on the top line, the index below it */
+  .mrd-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 12px var(--mrd-gut) 4px;
+  }
+
+  .mrd-mark-rule { height: 24px; }
+  .mrd-mark-sub em { display: none; }
+
+  .mrd-nav-links {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    gap: 0;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--mrd-hair-soft);
+  }
+
+  .mrd-nav-link {
+    min-height: 44px;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+  }
+
+  .mrd-nav-link::after { bottom: 9px; }
+
+  .mrd-nav-cta {
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    padding: 12px 12px;
+    gap: 8px;
+  }
+
+  /* rail keeps the plate count only */
+  .mrd-rail-head { display: none; }
+  .mrd-rail-mid { max-height: 34vh; font-size: 8px; }
+  .mrd-rail-foot { font-size: 8px; }
+  .mrd-rail-in { padding: 12px 0; gap: 10px; }
+
+  /* frontispiece */
+  .mrd-hero-frame {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 4 / 5;
+    max-height: 82vh;
+  }
+
+  .mrd-hero-stmt { font-size: 15px; max-width: 34ch; }
+
+  .mrd-hero-cap .mrd-cap-body em:nth-of-type(2) { display: none; }
+
+  .mrd-hero-measure { padding-bottom: 16px; }
+
+  /* statement */
+  .mrd-stmt {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    padding-top: 52px;
+    padding-bottom: 48px;
+  }
+
+  .mrd-stmt-side {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mrd-stmt-side .mrd-ticks--v {
+    width: auto;
+    height: 9px;
+    min-height: 0;
+    flex: 1 1 auto;
+    background-image: repeating-linear-gradient(
+      to right,
+      currentColor 0 1px,
+      transparent 1px 10px
+    );
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.65s var(--mrd-ease) 0.1s;
+  }
+
+  .mrd-stmt.mrd-in .mrd-stmt-side .mrd-ticks--v { transform: scaleX(1); }
+
+  .mrd-vfig { writing-mode: horizontal-tb; }
+
+  .mrd-stmt-meta { grid-column: 1; margin-top: 4px; }
+
+  /* material archive — plate above, selector and specification below */
+  .mrd-arc {
+    padding-top: 52px;
+    padding-bottom: 56px;
+  }
+
+  .mrd-arc-head {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .mrd-arc-intro,
+  .mrd-arc-count { grid-column: 1; }
+
+  .mrd-arc-count { margin-top: 14px; }
+
+  .mrd-arc-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 26px;
+  }
+
+  .mrd-arc-mount { padding: 9px; }
+
+  .mrd-arc-stack { aspect-ratio: 4 / 3; }
+
+  .mrd-arc-item--portrait .mrd-arc-img { width: 62%; }
+
+  .mrd-arc-btn {
+    min-height: 66px;
+    grid-template-columns: 30px minmax(0, 1fr) 20px;
+  }
+
+  .mrd-arc-btn--on { transform: translateX(4px); }
+
+  .mrd-arc-study {
+    grid-template-columns: 108px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .mrd-spec-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .mrd-spec-row dd { font-size: 12px; }
+
+  /* atelier */
+  .mrd-proc {
+    padding-top: 52px;
+    padding-bottom: 48px;
+    gap: 34px;
+  }
+
+  .mrd-proc-fig {
+    max-width: none;
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .mrd-step {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 6px 12px;
+    padding: 15px 0;
+  }
+
+  .mrd-step-t { grid-column: 2; }
+  .mrd-step-d { grid-column: 2 / -1; margin-top: 4px; font-size: 14px; }
+  .mrd-step-dim { grid-column: 2; margin-top: 6px; }
+  .mrd-step-w { grid-column: 3; grid-row: 1; }
+
+  .mrd-step--head { display: none; }
+
+  /* full plate */
+  .mrd-plate-frame {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 4 / 5;
+  }
+
+  .mrd-plate-cap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  /* close */
+  .mrd-close {
+    padding-top: 56px;
+    padding-bottom: 40px;
+  }
+
+  .mrd-close-acts {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .mrd-btn--brass,
+  .mrd-btn--lg { width: 100%; justify-content: space-between; }
+
+  .mrd-colophon { grid-template-columns: minmax(0, 1fr); }
+
+  .mrd-fiction { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 400px) {
+  .mrd-nav-link { font-size: 9px; letter-spacing: 0.1em; }
+  .mrd-mark-name { font-size: 13px; letter-spacing: 0.2em; }
+}
+
+/* ------------------------------------------------------------
+   12 · reduced motion — everything arrives already in place
+   ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .mrd-root *,
+  .mrd-root *::before,
+  .mrd-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .mrd-line,
+  .mrd-hero-type .mrd-eyebrow,
+  .mrd-hero-stmt,
+  .mrd-hero-cap,
+  .mrd-step,
+  .mrd-plate-cap,
+  .mrd-stmt-body > .mrd-eyebrow,
+  .mrd-stmt-body > .mrd-lede,
+  .mrd-stmt-body > .mrd-stmt-sub,
+  .mrd-stmt-body > .mrd-dim {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .mrd-rule,
+  .mrd-hero-rule,
+  .mrd-hero-measure .mrd-ticks,
+  .mrd-stmt-side .mrd-ticks--v,
+  .mrd-arc-btn-rule,
+  .mrd-arc-btn-mark {
+    transform: scale(1) !important;
+  }
+
+  .mrd-arc-btn--on { transform: none !important; }
+
+  .mrd-hero-img,
+  .mrd-proc-img,
+  .mrd-plate-img { transform: none !important; }
+
+  .mrd-proc-frame,
+  .mrd-plate-frame { clip-path: none !important; }
+
+  .mrd-arc-item,
+  .mrd-arc-macro-item { transform: none !important; }
+
+  .mrd-arc-item--on,
+  .mrd-arc-macro-item--on { clip-path: inset(0 0 0 0) !important; }
+}
+.mrd-arc, .mrd-proc, .mrd-stmt, .mrd-close, .mrd-plate { padding-block: clamp(5.5rem, 12vh, 9.5rem); }
+.mrd-steps { gap: clamp(1.6rem, 3.2vw, 2.8rem); }
+@media (max-width: 760px) {
+  .mrd-sec, .mrd-arc, .mrd-proc, .mrd-stmt, .mrd-close, .mrd-plate { padding-block: clamp(3.6rem, 8vh, 5.4rem); }
+}
+
+@media (max-width: 760px) {
+}
+
+/* ============================================================
+   § 05 · COMMISSIONS   /   § 08 · QUESTIONS
+
+   Set as a numbered schedule and a plain question list, both on
+   paper with hairline rules. Every padding/margin here is scoped
+   under .mrd-root on purpose: the element reset at the top of
+   this file zeroes margin and padding on h3/p/ol/li/dd/button at
+   (0,1,1), which quietly beats a bare single class.
+   ============================================================ */
+.mrd-comm {
+  padding: clamp(64px, 9vw, 128px) var(--mrd-gut) clamp(48px, 7vw, 96px);
+  background: var(--mrd-paper);
+  border-top: 1px solid var(--mrd-hair-soft);
+}
+.mrd-comm-head {
+  display: grid;
+  gap: 12px;
+  max-width: 66ch;
+  margin-bottom: clamp(28px, 4vw, 52px);
+}
+.mrd-root .mrd-comm-intro {
+  max-width: 56ch;
+  font-size: clamp(0.9rem, 1.05vw, 1.02rem);
+  line-height: 1.62;
+  color: var(--mrd-ink-70);
+}
+.mrd-comm-cta { justify-self: start; margin-top: 10px; }
+
+.mrd-comm-list { border-top: 1px solid var(--mrd-hair); }
+.mrd-root .mrd-comm-row {
+  display: grid;
+  grid-template-columns: 3.4ch minmax(0, 1fr) minmax(0, auto);
+  align-items: start;
+  gap: clamp(14px, 3vw, 44px);
+  padding: clamp(18px, 2.4vw, 30px) 0;
+  border-bottom: 1px solid var(--mrd-hair-soft);
+}
+.mrd-comm-n {
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--mrd-brass);
+  padding-top: 7px;
+}
+.mrd-root .mrd-comm-t {
+  font-size: clamp(1.02rem, 1.7vw, 1.4rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--mrd-ink);
+}
+.mrd-root .mrd-comm-p {
+  margin-top: 7px;
+  max-width: 60ch;
+  font-size: clamp(0.86rem, 1vw, 0.95rem);
+  line-height: 1.64;
+  color: var(--mrd-ink-70);
+}
+.mrd-comm-note {
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  color: var(--mrd-ink-38);
+  text-align: right;
+  padding-top: 8px;
+  max-width: 14ch;
+}
+
+.mrd-q {
+  padding: clamp(56px, 8vw, 112px) var(--mrd-gut) clamp(56px, 8vw, 112px);
+  background: var(--mrd-paper);
+  border-top: 1px solid var(--mrd-hair-soft);
+}
+.mrd-q-head { display: grid; gap: 12px; margin-bottom: clamp(24px, 3.4vw, 44px); }
+.mrd-q-list { border-top: 1px solid var(--mrd-hair); max-width: 92ch; }
+.mrd-q-row { border-bottom: 1px solid var(--mrd-hair-soft); }
+.mrd-root .mrd-q-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: clamp(16px, 2vw, 24px) 0;
+  text-align: left;
+  color: var(--mrd-ink);
+  transition: color 0.18s ease;
+}
+.mrd-root .mrd-q-btn:hover { color: var(--mrd-walnut); }
+.mrd-q-t { font-size: clamp(0.94rem, 1.35vw, 1.12rem); font-weight: 500; }
+.mrd-q-ico {
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 16px;
+  color: var(--mrd-brass);
+  flex: none;
+}
+.mrd-q-a { padding: 0 0 clamp(18px, 2.2vw, 28px); }
+.mrd-root .mrd-q-a p {
+  max-width: 68ch;
+  font-size: clamp(0.86rem, 1vw, 0.95rem);
+  line-height: 1.68;
+  color: var(--mrd-ink-70);
+}
+
+@media (max-width: 720px) {
+  .mrd-root .mrd-comm-row { grid-template-columns: 3.4ch minmax(0, 1fr); }
+  .mrd-comm-note { grid-column: 2; text-align: left; max-width: none; padding-top: 10px; }
+}
+
+/* ============================================================
+   ENQUIRY FORM — Meridian
+
+   Sits inside the dark colophon, so this one inverts: paper-
+   coloured rules on ink, brass focus. Ruled lines rather than
+   boxes, to match the drawing-annotation register the rest of
+   the build is set in.
+   ============================================================ */
+.mrd-enquire {
+  margin-top: clamp(44px, 6vw, 80px);
+  padding-top: clamp(28px, 3.6vw, 46px);
+  border-top: 1px solid var(--mrd-hair-inv);
+}
+.mrd-enquire-head { max-width: 56ch; margin-bottom: clamp(24px, 3.2vw, 38px); }
+.mrd-root .mrd-enquire-h {
+  margin-top: 12px;
+  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--mrd-paper);
+}
+.mrd-root .mrd-enquire-p {
+  margin-top: 10px;
+  font-size: clamp(0.86rem, 1vw, 0.94rem);
+  line-height: 1.68;
+  color: var(--mrd-paper-72);
+}
+
+@media (max-width: 700px) {
+}
+
+/* ============================================================
+   § 07 · SELECTED KITCHENS
+
+   Alternating plate / caption rows rather than a grid of tiles.
+   Each kitchen gets a full column of description because the
+   argument of the section is that the four are different, and a
+   thumbnail grid would flatten exactly that.
+   ============================================================ */
+.mrd-work {
+  padding: clamp(64px, 9vw, 128px) var(--mrd-gut) clamp(56px, 8vw, 104px);
+  background: var(--mrd-paper);
+  border-top: 1px solid var(--mrd-hair-soft);
+}
+.mrd-work-head { display: grid; gap: 12px; max-width: 66ch; margin-bottom: clamp(34px, 5vw, 62px); }
+.mrd-root .mrd-work-intro {
+  max-width: 58ch;
+  font-size: clamp(0.9rem, 1.05vw, 1.02rem);
+  line-height: 1.64;
+  color: var(--mrd-ink-70);
+}
+
+/* Alternating plate / caption rows. The four photographs are single 4:3
+   frames now, so each kitchen gets a full column of description — the section
+   argues that the four are different, and a grid of thumbnails would flatten
+   exactly that. */
+.mrd-work-list { display: grid; gap: clamp(40px, 6vw, 88px); }
+.mrd-root .mrd-work-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: start;
+  gap: clamp(20px, 3.4vw, 56px);
+  margin: 0;
+  padding-top: clamp(20px, 3vw, 34px);
+  border-top: 1px solid var(--mrd-hair);
+}
+/* every second row leads with the caption so the eye zig-zags down the page */
+.mrd-root .mrd-work-item:nth-child(even) .mrd-work-frame { order: 2; }
+.mrd-root .mrd-work-item:nth-child(even) .mrd-work-cap { order: 1; }
+
+.mrd-work-frame { aspect-ratio: 1200 / 896; overflow: hidden; background: var(--mrd-ink); }
+.mrd-work-img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.9s cubic-bezier(0.2, 0, 0, 1);
+}
+.mrd-root .mrd-work-item:hover .mrd-work-img { transform: scale(1.025); }
+
+.mrd-work-cap { display: grid; gap: 7px; align-content: start; }
+.mrd-root .mrd-work-t {
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--mrd-ink);
+}
+.mrd-root .mrd-work-place {
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-38);
+}
+/* the style line is the point of the section, so it gets the accent */
+.mrd-root .mrd-work-style {
+  margin-top: 2px;
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mrd-brass);
+}
+.mrd-root .mrd-work-note {
+  margin-top: 10px;
+  max-width: 46ch;
+  font-size: clamp(0.86rem, 1vw, 0.94rem);
+  line-height: 1.66;
+  color: var(--mrd-ink-70);
+}
+.mrd-root .mrd-work-spec {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--mrd-hair-soft);
+}
+.mrd-root .mrd-work-spec > div { display: grid; grid-template-columns: 7ch minmax(0, 1fr); gap: 12px; }
+.mrd-work-spec dt {
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mrd-ink-38);
+  padding-top: 2px;
+}
+.mrd-root .mrd-work-spec dd { font-size: 0.88rem; line-height: 1.5; color: var(--mrd-ink); }
+
+.mrd-work-cta { justify-self: start; margin-top: clamp(36px, 5vw, 64px); }
+
+@media (max-width: 900px) {
+  .mrd-root .mrd-work-item { grid-template-columns: 1fr; }
+    }
+
+/* inline conversion prompt */
+.mrd-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px clamp(24px, 4vw, 56px);
+  padding: clamp(20px, 2.8vw, 32px) var(--mrd-gut);
+  background: var(--mrd-paper);
+  border-top: 1px solid var(--mrd-hair);
+  border-bottom: 1px solid var(--mrd-hair);
+}
+.mrd-root .mrd-prompt p {
+  max-width: 54ch;
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  line-height: 1.5;
+  color: var(--mrd-ink);
+}
+
+/* ============================================================
+   § 01 · FRONTISPIECE — the drawing becoming the room
+
+   The hero is the wipe. Full-bleed sticky stage, masthead over a
+   scrim that only covers the type column so the drawing stays
+   readable behind it, and the DRAWN/BUILT marker riding the
+   bottom edge. The section is tall because the wipe needs travel;
+   the stage inside it sticks.
+   ============================================================ */
+.mrd-hero {
+  position: relative;
+  height: 260vh;
+  background: var(--mrd-paper);
+}
+.mrd-hero-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+.mrd-hero-stage { position: absolute; inset: 0; background: var(--mrd-paper); }
+.mrd-hero-layer { position: absolute; inset: 0; }
+.mrd-hero-layer picture { display: contents; }
+.mrd-hero-plan { background: var(--mrd-paper); }
+.mrd-hero-real { will-change: clip-path; background: var(--mrd-ink); }
+.mrd-hero-img { width: 100%; height: 100%; object-fit: cover; }
+/* white paper of the PNG drops out, the ink does not */
+.mrd-hero-ink { mix-blend-mode: multiply; }
+
+.mrd-hero-seam {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(169, 132, 84, 0) 0%,
+    var(--mrd-brass) 14%,
+    #E4CFA8 50%,
+    var(--mrd-brass) 86%,
+    rgba(169, 132, 84, 0) 100%
+  );
+  will-change: clip-path;
+  pointer-events: none;
+}
+
+/* only the left column is darkened — the wipe stays legible to the right */
+.mrd-hero-scrim {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(62%, 780px);
+  background: linear-gradient(
+    to right,
+    rgba(31, 35, 33, 0.88) 0%,
+    rgba(31, 35, 33, 0.72) 42%,
+    rgba(31, 35, 33, 0) 100%
+  );
+  pointer-events: none;
+}
+
+/* One bottom-anchored stack. The caption used to be its own absolutely
+   positioned block, which meant that on a short viewport it printed straight
+   through the statement — two independent blocks racing for the same corner. */
+.mrd-hero-type {
+  position: absolute;
+  left: var(--mrd-gut);
+  right: auto;
+  bottom: clamp(26px, 5vh, 56px);
+  top: calc(var(--mrd-nav-h, 76px) + clamp(12px, 3vh, 30px));
+  z-index: 2;
+  max-width: min(46ch, 52vw);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: clamp(10px, 1.6vh, 16px);
+  pointer-events: none;
+}
+.mrd-hero-type > * { pointer-events: auto; }
+.mrd-hero-rule {
+  display: block;
+  width: clamp(56px, 8vw, 120px);
+  height: 1px;
+  background: var(--mrd-brass);
+}
+.mrd-root .mrd-hero-stmt {
+  max-width: 44ch;
+  font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+  line-height: 1.66;
+  color: var(--mrd-paper-72);
+}
+.mrd-hero-cta { margin-top: 6px; }
+
+/* DRAWN / BUILT marker */
+.mrd-hero-swap {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: clamp(132px, 17vw, 190px);
+  height: clamp(44px, 5.4vw, 62px);
+  background: var(--mrd-ink);
+  pointer-events: none;
+}
+.mrd-hero-word {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-inline: 18px;
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--mrd-paper);
+  will-change: opacity, transform;
+}
+
+.mrd-root .mrd-hero-cap {
+  display: grid;
+  gap: 5px;
+  margin-top: clamp(10px, 2vh, 22px);
+  max-width: 46ch;
+}
+.mrd-root .mrd-hero-cap .mrd-cap-body {
+  display: grid;
+  gap: 2px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--mrd-paper-52);
+}
+.mrd-hero-cap em { font-style: normal; color: var(--mrd-paper-52); }
+
+@media (max-width: 860px) {
+  .mrd-hero { height: 220vh; }
+  /* On a phone the type sits over the middle of the frame, not the bottom, so
+     a bottom-up gradient leaves the headline on bare paper. Cover the whole
+     stage and let the wipe read through a flat wash instead. */
+  .mrd-hero-scrim {
+    width: 100%;
+    background:
+      linear-gradient(to top, rgba(31,35,33,.94) 0%, rgba(31,35,33,.88) 46%, rgba(31,35,33,.62) 78%, rgba(31,35,33,.42) 100%);
+  }
+  .mrd-hero-type {
+    max-width: none;
+    right: var(--mrd-gut);
+    top: calc(var(--mrd-nav-h, 76px) + 56px);
+    /* the concept modal floats a control bar over the bottom ~76px on a phone;
+       anything bottom-anchored lands underneath it and cannot be tapped */
+    bottom: clamp(94px, 13vh, 124px);
+  }
+  /* .mrd-root .mrd-hero-cap wins at (0,2,0) — a bare class here never did */
+  .mrd-root .mrd-hero-cap { display: none; }
+}
+
+/* The hero stack is bottom-anchored under the nav. On a short viewport — a
+   laptop in a small window, or landscape on a phone — a full-height stack
+   overflows upward and slides behind the masthead, so it sheds from the
+   bottom of the hierarchy instead. */
+@media (max-height: 760px) {
+  .mrd-root .mrd-hero-cap { display: none; }
+  .mrd-hero-type { gap: clamp(8px, 1.2vh, 12px); }
+  .mrd-hero .mrd-display { font-size: clamp(1.6rem, 4.4vw, 2.6rem); }
+  .mrd-root .mrd-hero-stmt { font-size: 0.88rem; max-width: 38ch; }
+  .mrd-hero-rule { width: clamp(40px, 6vw, 80px); }
+}
+@media (max-height: 560px) {
+  .mrd-root .mrd-hero-stmt { display: none; }
+  .mrd-hero .mrd-display { font-size: clamp(1.4rem, 4vw, 2rem); }
+}
+
+/* The nav stacked its links onto their own row only below 760px, but the
+   horizontal arrangement stops fitting around 900 — between the two the
+   CTA pushed past the right edge and gave the whole build a horizontal
+   scrollbar. This closes that gap. */
+@media (max-width: 900px) {
+  .mrd-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 12px;
+    padding-bottom: 4px;
+  }
+  /* place all three explicitly — left to auto-flow, the links span row 2 and
+     shove the CTA onto a third full-width row, which makes a sticky nav tall
+     enough to sit on top of the next section's heading */
+  .mrd-nav-mark { grid-column: 1; grid-row: 1; min-width: 0; }
+  .mrd-nav-cta  { grid-column: 2; grid-row: 1; justify-self: end; white-space: nowrap; }
+  .mrd-nav-links {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-left: 0;
+    gap: 0 14px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    border-top: 1px solid var(--mrd-hair-soft);
+  }
+  .mrd-nav-link { min-height: 42px; font-size: 9.5px; letter-spacing: 0.14em; }
+  .mrd-nav-cta { font-size: 9.5px; letter-spacing: 0.14em; padding: 12px 14px; gap: 8px; }
+}
+
+/* ============================================================
+   ENQUIRY FORM — Meridian
+
+   ⚠ DO NOT strip these as unused. Every class below is composed at
+   RUNTIME in components/concepts/DemoForm.tsx as `${p}-form-…`
+   with p="mrd", so the literal string "mrd-form-field" appears in
+   no source file. A dead-CSS pass that builds its used-set by
+   grepping Meridian.tsx for mrd-* will read the whole block as
+   dead and delete it — which is exactly what happened once.
+
+   Sits inside the dark colophon, so this one inverts: paper-
+   coloured rules on ink, brass focus. Ruled lines rather than
+   boxes, to match the drawing-annotation register of the build.
+   ============================================================ */
+.mrd-form { max-width: 780px; }
+.mrd-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 30px);
+  margin-bottom: clamp(16px, 2.4vw, 26px);
+}
+.mrd-form-field { display: grid; gap: 8px; margin-bottom: clamp(16px, 2.4vw, 26px); }
+.mrd-form-row .mrd-form-field { margin-bottom: 0; }
+.mrd-root .mrd-form-field label {
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mrd-paper-52);
+}
+.mrd-form-field label span { letter-spacing: 0.12em; text-transform: none; }
+
+.mrd-root .mrd-form-field input,
+.mrd-root .mrd-form-field select,
+.mrd-root .mrd-form-field textarea {
+  width: 100%;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--mrd-hair-inv);
+  border-radius: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: clamp(0.9rem, 1.04vw, 1rem);
+  color: var(--mrd-paper);
+  transition: border-color 0.24s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.mrd-root .mrd-form-field textarea { resize: vertical; line-height: 1.6; min-height: 96px; }
+.mrd-root .mrd-form-field select {
+  background-image: linear-gradient(45deg, transparent 50%, rgba(232,225,214,.6) 50%),
+                    linear-gradient(135deg, rgba(232,225,214,.6) 50%, transparent 50%);
+  background-position: right 10px center, right 5px center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 26px;
+}
+.mrd-root .mrd-form-field select option { color: var(--mrd-ink); }
+.mrd-root .mrd-form-field input:focus,
+.mrd-root .mrd-form-field select:focus,
+.mrd-root .mrd-form-field textarea:focus {
+  outline: none;
+  border-bottom-color: var(--mrd-brass);
+}
+.mrd-root .mrd-form-field input[aria-invalid="true"],
+.mrd-root .mrd-form-field textarea[aria-invalid="true"] { border-bottom-color: #C87A5E; }
+.mrd-root .mrd-form-err { font-size: 0.78rem; line-height: 1.5; color: #C87A5E; }
+
+.mrd-form-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px clamp(20px, 3vw, 36px);
+  margin-top: clamp(12px, 2vw, 20px);
+}
+.mrd-form-foot-text { display: grid; gap: 6px; max-width: 40ch; }
+.mrd-root .mrd-form-reassure { font-size: 0.83rem; line-height: 1.6; color: var(--mrd-paper-72); }
+.mrd-root .mrd-form-submit {
+  padding: 15px clamp(22px, 2.4vw, 36px);
+  border: 1px solid var(--mrd-brass);
+  border-radius: 0;
+  background: var(--mrd-brass);
+  color: var(--mrd-ink);
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.24s ease, color 0.24s ease;
+}
+.mrd-root .mrd-form-submit:hover { background: transparent; color: var(--mrd-brass); }
+.mrd-root .mrd-form-submit:disabled { opacity: 0.6; cursor: default; }
+.mrd-root .mrd-form-note {
+  max-width: 34ch;
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  line-height: 1.9;
+  text-transform: uppercase;
+  color: var(--mrd-paper-52);
+}
+.mrd-root .mrd-form-more {
+  margin-bottom: clamp(16px, 2.4vw, 26px);
+  padding: 0 0 4px;
+  border: 0;
+  border-bottom: 1px solid var(--mrd-hair-inv);
+  background: none;
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mrd-paper-72);
+  cursor: pointer;
+}
+
+.mrd-form--done { max-width: 60ch; }
+.mrd-form-donemark {
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  background: var(--mrd-brass);
+  color: var(--mrd-ink);
+  font-size: 17px;
+}
+.mrd-root .mrd-form-doneh {
+  margin-top: 16px;
+  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+  font-weight: 500;
+  color: var(--mrd-paper);
+}
+.mrd-root .mrd-form-donep {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  line-height: 1.68;
+  color: var(--mrd-paper-72);
+}
+.mrd-root .mrd-form-again {
+  margin-top: 20px;
+  padding: 0 0 3px;
+  border: 0;
+  border-bottom: 1px solid var(--mrd-hair-inv);
+  background: none;
+  font-family: var(--mrd-mono, var(--font-mono));
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mrd-paper);
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .mrd-form-row { grid-template-columns: 1fr; gap: 0; margin-bottom: 0; }
+  .mrd-form-row .mrd-form-field { margin-bottom: clamp(16px, 2.4vw, 26px); }
+}
+
+@media (max-width: 460px) {
+  /* the mark and the CTA were 12px apart — drop the descriptor so the two
+     have room, and shorten the button to the verb */
+  .mrd-mark-sub { display: none; }
+  .mrd-nav-cta { font-size: 9px; letter-spacing: 0.12em; padding: 11px 12px; }
+}
