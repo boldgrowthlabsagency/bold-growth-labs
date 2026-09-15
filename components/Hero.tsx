@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import CinematicPunchlineRotator from './CinematicPunchlineRotator';
+import Scramble from './Scramble';
 import MagneticButton from './MagneticButton';
 import { PHONE } from '@/lib/data';
 
@@ -110,7 +111,7 @@ export default function Hero() {
       <div className="relative overflow-hidden">
         <div className="lightsource" style={{ inset: '-30% 30% 20% -20%' }} />
         <div className="shell hero-copy relative z-[2] pb-[clamp(2.5rem,6vh,4rem)] pt-[clamp(1.25rem,3vh,2.4rem)]">
-          <p className="eyebrow mb-4">Bold Growth Labs</p>
+          <p className="eyebrow mb-4"><Scramble>Bold Growth Labs</Scramble></p>
           <CinematicPunchlineRotator />
           {/* Supporting positioning line. Two beats on two lines: the first
               sets up the situation, the second answers it. Both are legible on

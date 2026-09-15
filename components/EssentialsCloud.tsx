@@ -66,7 +66,7 @@ export default function EssentialsCloud() {
               key={p.label}
               onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}
               onFocus={() => setActive(i)} onBlur={() => setActive(null)}
-              className={`pill pill--drift z-${L.z} ${on ? 'is-on' : ''} ${dim ? 'is-dim' : ''}`}
+              className={`pill pill--drift z-${L.z} ${L.x >= 70 ? 'is-right' : ''} ${on ? 'is-on' : ''} ${dim ? 'is-dim' : ''}`}
               style={{
                 left: `${L.x}%`, top: `${L.y}%`, ['--depth' as any]: L.z,
                 /* each pill drifts on its own clock so the field never pulses in unison */
@@ -89,26 +89,34 @@ export default function EssentialsCloud() {
         })}
       </div>
 
-      {/* mobile: an interactive cluster, not a shrunken 3D field */}
-      <div className="shell relative z-[2] mt-10 flex flex-wrap justify-center gap-2 md:hidden">
-        {pills.map((p, i) => (
-          <button
-            key={p.label}
-            onClick={() => setActive(active === i ? null : i)}
-            className={`pill-bob rounded-full border px-4 py-2.5 text-[12.5px] transition-colors ${
-              active === i ? 'border-orange bg-orange/15 text-white' : 'border-white/15 text-white/70'
-            }`}
-            style={{
-              ['--dur' as any]: `${7 + (i % 4) * 1.6}s`,
-              ['--delay' as any]: `${-(i * 0.83) % 6}s`,
-              ['--drift' as any]: i % 2 ? '1' : '-1',
-            }}
-          >
-            {p.label}
-          </button>
-        ))}
+      {/* mobile: a drifting cluster, not a packed block of buttons */}
+      <div className="shell relative z-[2] mt-10 md:hidden">
+        <div className="pill-cluster">
+          {pills.map((p, i) => (
+            <button
+              key={p.label}
+              onClick={() => setActive(active === i ? null : i)}
+              className={`pill-bob pill-chip ${active === i ? 'is-on' : ''}`}
+              aria-pressed={active === i}
+              style={{
+                /* every chip on its own clock; the vertical nudge stops the
+                   wrapped rows reading as flat lines */
+                ['--dur' as any]: `${5.5 + (i % 5) * 1.3}s`,
+                ['--delay' as any]: `${-(i * 0.71) % 6}s`,
+                ['--drift' as any]: i % 2 ? '1' : '-1',
+                /* capped so two adjacent rows can never close their gap mid-float */
+                ['--amp' as any]: `${3 + (i % 3)}px`,
+              }}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
         {active !== null && (
-          <p className="mt-3 w-full text-center text-sm text-white/90">{pills[active].detail}</p>
+          <p className="pill-detail-mobile" role="status" aria-live="polite">
+            {pills[active].detail}
+          </p>
         )}
       </div>
     </section>

@@ -128,12 +128,12 @@ function Drift({
 /* Five scopes, written the way the studio talks: what gets built, not what the
    client will "experience". The register here is quiet and declarative — this
    build's whole personality is restraint, and a benefits list would shout. */
-const SCOPES: Array<{ n: string; title: string; body: string; from: string }> = [
-  { n: '01', title: 'Pools & spas', body: 'Gunite shells, dark plaster, vanishing edges and raised spas — engineered for the grade the garden actually sits on.', from: 'From $95k' },
-  { n: '02', title: 'Terraces & decking', body: 'Travertine, limestone and ipe, laid on a proper base so the surface is still level in ten summers.', from: 'From $28k' },
-  { n: '03', title: 'Outdoor kitchens', body: 'Built-in grill runs, stone counters and shaded seating, plumbed and wired as part of the build rather than added after.', from: 'From $34k' },
-  { n: '04', title: 'Planting & shade', body: 'Mature olive, citrus and native grasses, with pergolas and screens placed for the light the garden gets in August.', from: 'From $16k' },
-  { n: '05', title: 'Lighting & water', body: 'Low-voltage schemes, fire features and water walls, designed for the hour everyone actually uses the garden.', from: 'From $9k' },
+const SCOPES: Array<{ n: string; title: string; body: string }> = [
+  { n: '01', title: 'Pools & spas', body: 'Gunite shells, dark plaster, vanishing edges and raised spas — engineered for the grade the garden actually sits on.' },
+  { n: '02', title: 'Terraces & decking', body: 'Travertine, limestone and ipe, laid on a proper base so the surface is still level in ten summers.' },
+  { n: '03', title: 'Outdoor kitchens', body: 'Built-in grill runs, stone counters and shaded seating, plumbed and wired as part of the build rather than added after.' },
+  { n: '04', title: 'Planting & shade', body: 'Mature olive, citrus and native grasses, with pergolas and screens placed for the light the garden gets in August.' },
+  { n: '05', title: 'Lighting & water', body: 'Low-voltage schemes, fire features and water walls, designed for the hour everyone actually uses the garden.' },
 ];
 
 const ASKED: Array<{ q: string; a: string }> = [
@@ -307,11 +307,9 @@ export default function Sunline() {
           style={{ transitionDelay: '380ms' }}
         >
           <p>
-            A pool is the largest single gesture anyone makes in a garden. So we begin
-            somewhere else — with where the light lands at seven in the evening, what you
-            see from the kitchen, and how far you are willing to walk barefoot.
+            Most pool companies begin by drawing a pool. We begin by asking how you want to
+            live in the garden, then design the water around your answer.
           </p>
-          <p className="sun-quiet-sign">The water comes last.</p>
         </div>
 
         <p
@@ -438,11 +436,15 @@ export default function Sunline() {
       {/* ---------- 04b · what we build ---------- */}
       <section className="sun-scope" id="sun-scope" ref={scopeRef}>
         <div className={`sun-scope-head sun-fade${scopeSeen ? ' sun-in' : ''}`}>
-          <span className="sun-kicker">WHAT WE BUILD</span>
-          <h2 className="sun-display sun-scope-h">FIVE THINGS,<br /><em>DONE PROPERLY.</em></h2>
+          <span className="sun-kicker">Start here</span>
+          <h2 className="sun-display sun-scope-h">
+            BEGIN WITH THE VIEW
+            <br />
+            <em>YOU ALREADY HAVE.</em>
+          </h2>
           <p className="sun-scope-intro">
-            One studio, one crew, one contract. We design it, engineer it, permit it and build it —
-            nothing is handed to a trade we have not worked with for years.
+            Every project starts the same way: we stand in your garden and talk about what it
+            could be. No renderings, no pressure, no charge.
           </p>
         </div>
 
@@ -458,7 +460,6 @@ export default function Sunline() {
                 <h3 className="sun-scope-t">{sc.title}</h3>
                 <p className="sun-scope-p">{sc.body}</p>
               </div>
-              <span className="sun-scope-from">{sc.from}</span>
             </li>
           ))}
         </ul>
@@ -591,15 +592,15 @@ export default function Sunline() {
           composed. */}
       <section className="sun-close" id="sun-contact" ref={closeRef}>
         <div className={`sun-close-body sun-fade${closeSeen ? ' sun-in' : ''}`}>
-          <span className="sun-kicker">Start here</span>
+          <span className="sun-kicker">What happens next</span>
           <h2 className="sun-display sun-close-h">
-            BEGIN WITH THE VIEW
+            THREE STEPS,
             <br />
-            <em>YOU ALREADY HAVE.</em>
+            <em>THEN A NUMBER.</em>
           </h2>
           <p className="sun-close-lede">
-            Every project starts the same way: we stand in your garden and talk about what it
-            could be. No renderings, no pressure, no charge.
+            Nothing is guessed at and nothing moves once you have the quote. Here is the whole
+            of it, start to handover.
           </p>
         </div>
 
@@ -635,23 +636,6 @@ export default function Sunline() {
           </a>
         </div>
 
-        <dl className={`sun-close-facts sun-fade${closeSeen ? ' sun-in' : ''}`} style={{ transitionDelay: '400ms' }}>
-          <div>
-            <dt>Where we build</dt>
-            <dd>San Diego · Orange County · Los Angeles. Santa Barbara to the border, and no
-              further — past that we cannot supervise a site properly.</dd>
-          </div>
-          <div>
-            <dt>How long</dt>
-            <dd>Eight to twelve weeks for design and permits, twelve to twenty on site. Weather
-              moves it; nothing else does.</dd>
-          </div>
-          <div>
-            <dt>Design fee</dt>
-            <dd>$4,800 for the full package, credited against the build if you go ahead with
-              us.</dd>
-          </div>
-        </dl>
 
         <div className={`sun-enquire sun-fade${closeSeen ? ' sun-in' : ''}`} id="sun-enquire" style={{ transitionDelay: '480ms' }}>
           <div className="sun-enquire-head">
@@ -715,13 +699,61 @@ export default function Sunline() {
       </section>
 
       <footer className="sun-foot">
-        <span className="sun-foot-mark">SUNLINE POOLS</span>
-        <p className="sun-foot-note">
-          <b className="sun-badge">CONCEPT BUILD</b>
-          Sunline Pools is a fictional business created to demonstrate the studio&rsquo;s
-          work. It is not a client and does not exist — project names, locations and
-          dimensions are invented.
-        </p>
+        <div className="sun-foot-top">
+          <div className="sun-foot-brand">
+            <span className="sun-foot-mark">SUNLINE POOLS</span>
+            <p className="sun-foot-line">
+              Sunline Studio · Del Mar &amp; Los Angeles · design–build since 2009
+            </p>
+            <a className="sun-foot-cta" href="#sun-enquire">
+              <span>Book a site walk</span>
+              <i className="sun-arrow" aria-hidden="true">→</i>
+            </a>
+          </div>
+
+          <nav className="sun-foot-cols" aria-label="Sunline footer">
+            {/* The five scopes come from SCOPES rather than being retyped, so a
+                service added upstairs cannot go missing down here. */}
+            <div className="sun-foot-col">
+              <h3 className="sun-foot-h">What we build</h3>
+              <ul>
+                {SCOPES.map((sc) => (
+                  <li key={sc.n}><a href="#sun-scope">{sc.title}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="sun-foot-col">
+              <h3 className="sun-foot-h">Studio</h3>
+              <ul>
+                <li><a href="#sun-projects">Projects</a></li>
+                <li><a href="#sun-house">Sunline House</a></li>
+                <li><a href="#sun-process">Process</a></li>
+                <li><a href="#sun-studio">The studio</a></li>
+                <li><a href="#sun-ask">Common questions</a></li>
+              </ul>
+            </div>
+
+            <div className="sun-foot-col">
+              <h3 className="sun-foot-h">Service area</h3>
+              <ul>
+                <li>San Diego</li>
+                <li>Orange County</li>
+                <li>Los Angeles</li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+
+        <div className="sun-foot-base">
+          <span className="sun-foot-copy">&copy; {new Date().getFullYear()} Sunline Pools</span>
+          <p className="sun-foot-note">
+            <b className="sun-badge">CONCEPT BUILD</b>
+            Sunline Pools is a fictional business created to demonstrate the studio&rsquo;s
+            work. It is not a client and does not exist — project names, locations and
+            dimensions are invented.
+          </p>
+        </div>
       </footer>
     </div>
   );

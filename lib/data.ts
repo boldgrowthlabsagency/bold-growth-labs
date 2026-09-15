@@ -6,11 +6,9 @@
 export const PHONE = '+18583157718';
 export const PHONE_DISPLAY = '858.315.7718';
 
-/* How long a punchline sits fully assembled before it leaves, in ms — the
-   reading window, not the whole cycle. The build-up (lead wipe, the beat
-   before the accent, the goo morph, the supporting line) and the exit add
-   roughly 5.6s on top, so the full cycle is about this plus 5.6s. */
-export const PUNCHLINE_HOLD_MS = 3800;
+/* How long each word sits fully resolved before morphing into the next, in ms.
+   The morph itself adds ~1.4s on top, so a full word cycle is this plus that. */
+export const HERO_DWELL_MS = 1900;
 
 /* Where enquiries land. */
 export const INBOX = 'boldgrowthlabs@gmail.com';
@@ -31,37 +29,36 @@ export const NEEDS = [
    touching a single component.
    ============================================================ */
 
-export type Punchline = { headline: string; accent: string; supporting: string };
+/* ============================================================
+   HERO HEADLINE
 
-/* Each entry is ONE complete visual composition — headline + supporting copy
-   transition together as a unit, never as independent sentences. */
-export const punchlines: Punchline[] = [
-  {
-    headline: 'Built to make',
-    accent: 'people stop.',
-    supporting: 'You just did. Imagine that working for your business.',
-  },
-  {
-    headline: 'Your website has',
-    accent: 'one job.',
-    supporting: 'Get attention. Keep it. Turn it into business.',
-  },
-  {
-    headline: 'Your business',
-    accent: 'evolved.',
-    supporting: 'Your website should have too.',
-  },
-  {
-    headline: 'You built something',
-    accent: 'worth choosing.',
-    supporting: 'Now build a website that makes people see it.',
-  },
-];
+   Two fixed lines with ONE morphing word, matching the reference
+   build: the adjective cycles, the noun does not. Everything else
+   on the line stays put, so the eye has a single moving target
+   instead of a whole composition swapping underneath it.
 
-export const laptopBeats = [
-  'A website should do more than look good.',
-  'It should make people trust you.',
-  'And make them take action.',
+   `words` is the only thing that rotates. Add or remove entries
+   freely — the slot measures whatever is longest and the tail
+   stays snug against it.
+   ============================================================ */
+export const HERO = {
+  words: ['Next-Gen', 'Innovative', 'Immersive', 'Cinematic', 'Impactful', 'Interactive', 'Premium'],
+  /** the fixed remainder of line one, sitting right after the morphing word */
+  tail: 'Websites.',
+  /** line two, entirely static */
+  line2: 'Scaling Businesses.',
+};
+
+/* Each beat names the phrase that carries it. The accent is content, not
+   markup — it was previously hard-coded into the component for the third line
+   only, which is why the first two had no emphasis at all.
+   A `|` in the text is a deliberate line break, so the accent always starts a
+   line rather than wrapping wherever the measure happens to run out. */
+export type LaptopBeat = { text: string; accent: string };
+export const laptopBeats: LaptopBeat[] = [
+  { text: 'A website should do more|than look good.',  accent: 'do more' },
+  { text: 'Your website should make people|trust you.', accent: 'trust you' },
+  { text: 'And make them|take action.',                 accent: 'take action' },
 ];
 
 export type Pill = { label: string; detail: string };
@@ -92,6 +89,7 @@ export const services: Service[] = [
   { n: '04', title: 'Brand Identity', copy: 'Typography, visual systems, logos and digital assets that make businesses memorable.' },
   { n: '05', title: 'SEO',            copy: 'Technical and local search foundations that help businesses get discovered.' },
   { n: '06', title: 'AI & Automation',copy: 'Smart systems that help businesses capture, qualify and follow up with leads.' },
+  { n: '07', title: 'Reviews & Reputation', copy: 'Steady reviews from real customers, every one answered, and the best of them working on your website.' },
 ];
 
 export type Step = { n: string; title: string; copy: string };
@@ -172,6 +170,10 @@ export type AddOn = {
      this is the "what is this?" layer, not extra body copy. One or two short
      sentences, maximum. */
   desc: string;
+  /* Items this one replaces. A bundle and the pieces it contains must never be
+     selectable together, or the builder quotes a number nobody would ever be
+     charged. Selecting one clears the others. */
+  excludes?: string[];
 };
 
 export const addOnsOnce: AddOn[] = [
@@ -198,8 +200,13 @@ export const addOnsOnce: AddOn[] = [
 export const addOnsMonthly: AddOn[] = [
   { id: 'care',      label: 'Care Plan',              monthly: 95,
     desc: 'Keep your website maintained, monitored, backed up, and updated after launch.' },
-  { id: 'localseo',  label: 'Local SEO & AI Search',  monthly: 149,
+  { id: 'localseo',  label: 'Local SEO & AI Search',  monthly: 149, excludes: ['growth'],
     desc: 'Improve how your business appears in local search and how AI assistants discover and recommend you.' },
+  { id: 'reviews',   label: 'Reviews & Reputation',   monthly: 199, once: 299, excludes: ['growth'],
+    desc: 'We ask every customer for a review, answer every one that comes in, and put the best of them on your website.' },
+  { id: 'growth',    label: 'Local Growth Bundle',    monthly: 279, once: 299, note: 'saves $69/mo',
+    excludes: ['localseo', 'reviews'],
+    desc: 'Local SEO and Reviews & Reputation together, with the same one-time $299 setup. The two work on the same thing, since review volume and recency also move local rankings.' },
   { id: 'social',    label: 'Social Media Marketing', monthly: 149,
     desc: 'Create and manage social content designed to keep your business visible and engaged.' },
   { id: 'email',     label: 'Email Campaigns',        monthly: 149,
@@ -226,6 +233,7 @@ export const faqs: Faq[] = [
   { q: 'Can you integrate booking?', a: 'Yes — online booking is a $149 add-on, and AI-assisted booking that answers and schedules for you is available monthly.' },
   { q: 'What happens after launch?', a: 'We monitor performance, fix anything that breaks, and walk you through making your own updates in plain English. No jargon, no gatekeeping.' },
   { q: 'Can you maintain the website?', a: 'Yes. The Care Plan is $95/month and covers updates, monitoring, backups and small changes.' },
+  { q: 'Can you get us more reviews?', a: 'Yes. Reviews & Reputation is $199/month, or $279/month bundled with Local SEO. Either way there is a one-time $299 setup. We ask every customer after every job, answer every review that comes in, and put the best ones on your site. We never screen customers first or offer anything in exchange for a review — both breach Google\u2019s policies and FTC rules, and both can get a profile suspended.' },
 ];
 
 export const nav = [

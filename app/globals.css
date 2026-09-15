@@ -99,6 +99,13 @@ body {
 .eyebrow::before { content: ""; width: 32px; height: 1px; background: currentColor; opacity: .8; }
 
 .display--hero { font-size: var(--step-5) !important; }
+/* The hero is now a deliberate TWO-LINE composition, so on a phone the type
+   has to shrink until both lines fit rather than reflowing. At the desktop
+   size "Scaling Businesses." breaks after "Scaling", which splits the phrase
+   in half and reads as a mistake. 8vw keeps each line whole down to 320px. */
+@media (max-width: 560px) {
+  .display--hero { font-size: clamp(1.65rem, 8vw, 2.3rem) !important; }
+}
 .display {
   font-size: var(--step-4);
   line-height: .96;
@@ -172,44 +179,148 @@ body {
 @keyframes tick { 0% { transform: translateY(-14px); opacity: 0 } 40% { opacity: 1 } 100% { transform: translateY(38px); opacity: 0 } }
 
 /* ---------- laptop ---------- */
-.laptop-rig { transform: perspective(1800px) rotateX(16deg); transition: none; }
-.laptop { position: relative; width: min(52vw, 430px); transform-style: preserve-3d; }
+/* POV FROM ABOVE, matching the reference build.
+
+   The sign here is the whole thing. Positive rotateX pushes the top edge away
+   and puts the camera BELOW the object; negative brings the top toward you and
+   puts it ABOVE, looking down at the deck. This was at +26deg — the opposite
+   of the intended shot, which is why the keyboard never read properly however
+   deep the base got. The reference uses -22deg. */
+.laptop-rig { transform: perspective(1500px) rotateX(-22deg); transition: none; }
+/* --deck is shared by the base and the hinge glow so the glow tracks the
+   lid/base joint instead of floating below the whole object. */
+.laptop { --deck: clamp(88px, 11vw, 124px); position: relative; width: min(72vw, 560px); transform-style: preserve-3d; }
 .laptop__lid {
   position: relative; width: 100%; aspect-ratio: 16 / 10.4;
   border-radius: 12px 12px 3px 3px; will-change: transform;
   background: linear-gradient(160deg, #1b2433 0%, #0d1420 60%, #070c15 100%);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 -2px 26px rgba(0,0,0,.5);
 }
-.laptop__lidback { position: absolute; inset: 0; border-radius: inherit; backface-visibility: hidden;
-  background: linear-gradient(140deg, #223046, #0b1220); }
+/* REAL THICKNESS.
+
+   The lid was a single plane, so shut it read as a card lying on the page.
+   Separating the outer shell and the screen face along Z gives the panel
+   actual depth — you see the edge of it as it swings, and closed it reads as
+   an object with mass. Matches how the reference build does it. */
+.laptop__lidback {
+  position: absolute; inset: 0; border-radius: inherit;
+  transform: translateZ(-7px);
+  background: radial-gradient(80% 60% at 50% 36%, #2b3a52 0%, #16202f 52%, #080d16 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), inset 0 -2px 8px rgba(0,0,0,.55);
+}
+/* the four walls that close the gap between the two faces */
+.laptop__lidwall { position: absolute; background: linear-gradient(180deg, #1b2637, #0a1019); }
+.laptop__lidwall--top { left: 0; right: 0; top: 0; height: 14px; transform: translateY(-7px) rotateX(90deg); }
+.laptop__lidwall--bot { left: 0; right: 0; bottom: 0; height: 14px; transform: translateY(7px) rotateX(90deg); }
+.laptop__lidwall--left { top: 0; bottom: 0; left: 0; width: 14px; transform: translateX(-7px) rotateY(90deg); }
+.laptop__lidwall--right { top: 0; bottom: 0; right: 0; width: 14px; transform: translateX(7px) rotateY(90deg); }
 .laptop__screen {
   position: absolute; inset: 9px 9px 10px; border-radius: 6px; overflow: hidden;
-  background: #01030f; box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
+  transform: translateZ(7px);
+  /* Not flat black. An unlit panel still catches room light, and a pure #01030f
+     rectangle is what made the reveal read as a glitch — the screen looked
+     broken until the UI appeared, rather than switched off. */
+  background:
+    radial-gradient(120% 90% at 50% 0%, #0d1626 0%, #050a14 55%, #02050c 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
+}
+/* The panel's own glow, ramped with the reveal. This exists because a CSS
+   `filter` on a descendant of a preserve-3d context makes Safari flatten or
+   drop the layer — the screen stayed black on iOS while everything else kept
+   animating. A plain background layer under the UI is safe in 3D. */
+.laptop__backlight {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 40%, rgba(120,160,255,.20), rgba(232,82,10,.10) 55%, transparent 78%);
 }
 .laptop__glass {
   position: absolute; inset: 0; z-index: 3; pointer-events: none;
   background: linear-gradient(118deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 34%, rgba(255,255,255,.05) 60%, rgba(255,255,255,0) 78%);
 }
 .laptop__base {
-  position: relative; width: 104%; margin-left: -2%; height: 16px; border-radius: 0 0 14px 14px;
-  background: linear-gradient(180deg, #263143 0%, #131c29 45%, #0a1018 100%);
-  box-shadow: 0 18px 46px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14);
-  transform: rotateX(66deg); transform-origin: top center;
+  position: relative; width: 106%; margin-left: -3%;
+  /* deep enough to hold a keyboard and a trackpad, laid flat under the lid */
+  height: var(--deck);
+  border-radius: 0 0 16px 16px;
+  background: linear-gradient(180deg, #2a3547 0%, #16202e 38%, #0b1119 100%);
+  box-shadow: 0 26px 60px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.16);
+  /* a real horizontal surface, not a raked panel — the rig's -22deg is what
+     gives it its perspective */
+  transform: rotateX(90deg); transform-origin: top center;
+  transform-style: preserve-3d;
 }
-.laptop__keys { position: absolute; inset: 3px 12% 6px; display: grid; grid-template-columns: repeat(15, 1fr); gap: 2px; opacity: .5; }
-.laptop__keys span { background: rgba(255,255,255,.08); border-radius: 1px; }
-.laptop__pad { position: absolute; left: 50%; bottom: 1px; width: 22%; height: 4px; transform: translateX(-50%); background: rgba(255,255,255,.07); border-radius: 2px; }
+/* underside of the deck, giving the body its height off the desk */
+.laptop__baseunder {
+  position: absolute; inset: 0; border-radius: 0 0 16px 16px;
+  transform: translateZ(-11px);
+  background: linear-gradient(180deg, #0b1119, #05080d);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+/* keyboard well — inset panel the keys sit inside */
+.laptop__keys {
+  position: absolute; inset: 9% 8% 34% 8%; transform: translateZ(1px);
+  display: grid; grid-template-rows: repeat(5, 1fr); gap: 2.5px;
+  padding: 4px; border-radius: 4px;
+  background: rgba(0,0,0,.28);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+}
+.laptop__krow { display: grid; grid-template-columns: repeat(var(--keys, 14), 1fr); gap: 2.5px; }
+.laptop__krow span {
+  background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+  border-radius: 1.5px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.45);
+}
+/* space bar row reads differently or the deck looks like graph paper */
+.laptop__krow--space { grid-template-columns: 1fr 1fr 4fr 1fr 1fr; }
+.laptop__pad {
+  position: absolute; left: 50%; bottom: 8%;
+  width: 30%; height: 22%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.045));
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), 0 1px 0 rgba(0,0,0,.4);
+}
 .laptop__hingeglow {
-  position: absolute; left: 6%; right: 6%; bottom: -4px; height: 3px; border-radius: 3px; opacity: 0;
+  position: absolute; left: 6%; right: 6%; bottom: calc(var(--deck) - 3px); height: 3px; border-radius: 3px; opacity: 0;
   background: linear-gradient(90deg, transparent, var(--bold-orange), transparent);
   box-shadow: 0 0 14px 2px rgba(var(--orange-rgb), .5);
 }
+/* Light thrown OUT of the panel onto the surroundings. Without this the screen
+   is a bright rectangle on a dark page and reads as a sticker rather than a
+   lit display. Opacity is driven from the open progress in the component. */
+.laptop__spill {
+  position: absolute; left: -22%; right: -22%; top: -14%; bottom: -34%;
+  z-index: -1; pointer-events: none; opacity: 0;
+  background:
+    radial-gradient(58% 46% at 50% 34%, rgba(150,185,255,.24) 0%, rgba(120,150,255,.10) 42%, transparent 72%),
+    radial-gradient(42% 34% at 50% 62%, rgba(232,82,10,.20) 0%, transparent 70%);
+  filter: blur(18px);
+}
 .laptop__shadow {
-  position: absolute; left: 6%; right: 6%; bottom: -26px; height: 40px; border-radius: 50%;
+  position: absolute; left: 4%; right: 4%; bottom: -18px; height: 40px; border-radius: 50%;
   background: radial-gradient(ellipse at center, rgba(0,0,0,.62), transparent 68%); filter: blur(9px);
 }
 /* the miniature site inside the screen */
 .laptop__ui { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; background: var(--bold-navy); }
+/* The mini page is taller than the screen and is translated by scroll, so the
+   site inside the laptop scrolls while the reader scrolls the real one. */
+/* Exactly two screens tall, so a -50% translate lands the last section flush
+   with the bottom of the panel and the screen can never scroll to blank. */
+.bs__feed { display: flex; flex-direction: column; will-change: transform; }
+.bs__work { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-top: 5px; }
+.bs__wcard { border: .5px solid rgba(255,255,255,.1); border-radius: 3px; padding: 4px; }
+.bs__wcard i { display: block; height: 12px; border-radius: 2px; background: linear-gradient(140deg, rgba(232,82,10,.35), rgba(255,255,255,.06)); }
+.bs__wcard b { display: block; margin-top: 3px; font-size: 4.2px; color: #fff; font-weight: 700; }
+.bs__wcard u { display: block; font-size: 3.4px; text-decoration: none; color: rgba(255,255,255,.45); }
+.bs__steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 5px; }
+.bs__step { border-radius: 3px; background: rgba(255,255,255,.04); padding: 4px 3px; text-align: center; }
+.bs__step em { display: block; font-family: var(--font-mono); font-style: normal; font-size: 3.4px; color: var(--bold-orange); letter-spacing: .12em; }
+.bs__step b { display: block; margin-top: 2px; font-size: 3.8px; color: rgba(255,255,255,.8); font-weight: 600; }
+.bs__faq { margin-top: 5px; display: grid; gap: 3px; }
+.bs__q { display: flex; align-items: center; justify-content: space-between; border-bottom: .5px solid rgba(255,255,255,.08); padding-bottom: 3px; }
+.bs__q b { font-size: 4px; color: rgba(255,255,255,.78); font-weight: 500; }
+.bs__q i { font-style: normal; font-size: 4px; color: var(--bold-orange); }
+/* the real mark, shrunk into the mini nav */
+.bs__logo svg, .bs__logo img { height: 7px; width: auto; display: block; }
 .mini__bar { display: flex; align-items: center; gap: 4px; padding: 5px 8px; background: #0a1220; }
 .mini__bar i { width: 4px; height: 4px; border-radius: 50%; background: #33405a; }
 .mini__bar span { margin-left: 8px; font-family: var(--font-mono); font-size: 5px; color: #5b6a86; }
@@ -238,10 +349,20 @@ body {
 .pill { transform: translate(-50%, calc(-50% + (var(--par, 0) * var(--depth, 2) * 26px))); }
 .pill__label { display: inline-flex; align-items: center; gap: 0; white-space: nowrap; font-weight: 600; }
 .pill__check { width: 0; height: 14px; opacity: 0; color: var(--bold-orange); transition: width .3s var(--e-expo), opacity .3s ease, margin .3s var(--e-expo); }
+/* The detail drives its own width rather than inheriting the pill's.
+
+   The pill is absolutely positioned, so with no width of its own it
+   shrink-to-fits against the space left between its `left:` anchor and the
+   container edge. A pill at left:88% therefore had ~140px to work with and
+   wrapped "Plain-English handover so nothing is a mystery." into a tall thin
+   stack. Collapsing to width:0 keeps a closed pill exactly label-sized, and
+   opening to a fixed width means every pill reads the same regardless of
+   where it sits in the field. */
 .pill__detail {
-  display: block; overflow: hidden; max-height: 0; opacity: 0; max-width: 250px;
+  display: block; overflow: hidden; width: 0; max-height: 0; opacity: 0;
   font-size: 12px; line-height: 1.5; color: rgba(255,255,255,.6);
-  transition: max-height .4s var(--e-expo), opacity .3s ease, margin .4s var(--e-expo);
+  transition: width .4s var(--e-expo), max-height .4s var(--e-expo),
+              opacity .3s ease, margin .4s var(--e-expo);
 }
 .pill.is-on {
   z-index: 9; opacity: 1; filter: none; color: #fff;
@@ -251,8 +372,72 @@ body {
   transform: translate(-50%, calc(-50% + (var(--par, 0) * var(--depth, 2) * 26px))) scale(1.08);
 }
 .pill.is-on .pill__check { width: 14px; opacity: 1; margin-right: 7px; }
-.pill.is-on .pill__detail { max-height: 90px; opacity: 1; margin-top: 7px; }
+.pill.is-on .pill__detail {
+  width: 216px; max-height: 90px; opacity: 1; margin-top: 7px;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(var(--orange-rgb), .45), 0 0 34px rgba(var(--orange-rgb), .22);
+}
 .pill.is-dim { opacity: .3; filter: blur(2.4px); }
+/* Pills anchored past ~70% across grow past the field's right edge once the
+   detail opens, and the section clips overflow. These expand leftward. */
+.pill.is-right.is-on {
+  transform: translate(-88%, calc(-50% + (var(--par, 0) * var(--depth, 2) * 26px))) scale(1.08);
+}
+
+/* ---------- process deck ---------- */
+
+/* The deck is one stacking context with every card absolutely placed on the
+   same origin, so "landing" is purely a transform — no layout runs while
+   scrolling. The container reserves the height of a single card. */
+.proc-deck { position: relative; height: clamp(300px, 42vh, 380px); }
+.proc-card {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: clamp(1.6rem, 3vw, 2.6rem);
+  border-radius: var(--r-lg, 20px);
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(var(--slate-rgb), .88);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 26px 70px rgba(0,0,0,.5);
+  transform-origin: 50% 0%;
+  transition: opacity .35s ease;
+  will-change: transform;
+}
+.proc-card__n {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px; letter-spacing: .26em; color: var(--bold-orange);
+}
+.proc-card__t {
+  margin-top: .7rem;
+  font-size: var(--step-2); font-weight: 800; line-height: 1.05; letter-spacing: -.03em;
+}
+.proc-card__p { margin-top: .85rem; color: var(--bold-muted); line-height: 1.6; max-width: 46ch; }
+
+/* reduced motion renders them as an ordinary list instead */
+.proc-card--static { position: static; inset: auto; height: auto; }
+
+/* the numbered jump control */
+.proc-dot {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: .12em; color: rgba(255,255,255,.5);
+  transition: color .3s ease, border-color .3s ease, background-color .3s ease, transform .3s var(--e-expo);
+}
+.proc-dot:hover { color: #fff; border-color: rgba(255,255,255,.45); }
+.proc-dot.is-on {
+  color: #fff; border-color: rgba(var(--orange-rgb), .8);
+  background: rgba(var(--orange-rgb), .16);
+  transform: scale(1.08);
+}
+.proc-dot-line { width: 22px; height: 1px; background: rgba(255,255,255,.16); }
+
+@media (max-width: 760px) {
+  .proc-deck { height: clamp(270px, 48vh, 340px); }
+  .proc-dot { width: 34px; height: 34px; }
+  .proc-dot-line { width: 12px; }
+}
 
 /* ---------- services rows ---------- */
 .svc-row {
@@ -281,19 +466,77 @@ body {
 
 
 /* ---------- pricing ---------- */
-.plan { position: relative; display: flex; height: 100%; flex-direction: column; border-radius: var(--r-lg); border: 1px solid rgba(255,255,255,.1); background: rgba(var(--slate-rgb), .55); padding: 2rem 1.8rem 2.2rem; transition: transform .45s var(--e-expo), border-color .4s ease, box-shadow .45s ease, background-color .4s ease; }
-.plan:hover { transform: translateY(-6px); border-color: rgba(255,255,255,.24); box-shadow: 0 26px 70px rgba(0,0,0,.5); }
-.plan--featured { border-color: rgba(var(--orange-rgb), .55); background: linear-gradient(170deg, rgba(var(--orange-rgb), .1), rgba(var(--slate-rgb), .7) 55%); box-shadow: 0 20px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(var(--orange-rgb), .18); }
+.plan {
+  position: relative; display: flex; height: 100%; flex-direction: column;
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(255,255,255,.09) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(var(--slate-rgb), .78) 0%, rgba(var(--slate-rgb), .5) 100%);
+  backdrop-filter: blur(14px);
+  padding: 2.1rem 1.9rem 2.3rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    inset 0 -18px 40px rgba(0,0,0,.22),
+    0 22px 50px rgba(0,0,0,.42);
+  transition: transform .45s var(--e-expo), border-color .4s ease, box-shadow .45s ease, background-color .4s ease;
+}
+.plan:hover {
+  transform: translateY(-8px) scale(1.012);
+  border-color: rgba(255,255,255,.26);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),
+    inset 0 -18px 40px rgba(0,0,0,.2),
+    0 34px 80px rgba(0,0,0,.55);
+}
+.plan--featured {
+  border-color: rgba(var(--orange-rgb), .5);
+  background:
+    radial-gradient(120% 80% at 50% -12%, rgba(var(--orange-rgb), .22) 0%, transparent 62%),
+    linear-gradient(180deg, rgba(var(--slate-rgb), .82) 0%, rgba(var(--slate-rgb), .55) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),
+    inset 0 -18px 44px rgba(0,0,0,.22),
+    0 26px 66px rgba(0,0,0,.48),
+    0 0 44px rgba(var(--orange-rgb), .16);
+}
 .plan--featured:hover { border-color: rgba(var(--orange-rgb), .85); box-shadow: 0 30px 84px rgba(0,0,0,.55), 0 0 60px rgba(var(--orange-rgb), .22); }
 .plan__badge { position: absolute; right: 1.4rem; top: 1.4rem; border-radius: 99px; background: var(--bold-orange); padding: 5px 11px; font-family: var(--font-mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
 .plan__name { font-size: var(--step-1); font-weight: 700; letter-spacing: -.015em; }
 .plan__price { margin-top: .6rem; font-size: clamp(2.6rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -.04em; line-height: 1; }
 .plan__price em { font-size: .34em; font-style: normal; font-weight: 600; color: var(--bold-muted); letter-spacing: 0; }
 .plan__blurb { margin-top: .9rem; font-size: 13.5px; line-height: 1.6; color: var(--bold-muted); }
-.plan__tiers { margin-top: 1.1rem; display: grid; gap: 4px; border-radius: var(--r-md); border: 1px solid rgba(255,255,255,.1); padding: .8rem .9rem; font-family: var(--font-mono); font-size: 11.5px; color: rgba(255,255,255,.62); }
+.plan__tiers { margin-top: 1.1rem; display: grid; gap: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.06); padding: .85rem .95rem; font-family: var(--font-mono); font-size: 11.5px; color: rgba(255,255,255,.62); }
 .plan__features { margin-top: 1.4rem; display: grid; gap: .6rem; flex: 1; }
 .plan__features li { display: flex; gap: .6rem; font-size: 13.5px; line-height: 1.45; color: rgba(255,255,255,.78); }
 .plan__features svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; color: var(--bold-orange); }
+
+/* ---------- add-on builder: same bubbled treatment as the plans ---------- */
+.builder-panel {
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.1);
+  background:
+    radial-gradient(120% 70% at 50% -8%, rgba(255,255,255,.07) 0%, transparent 58%),
+    linear-gradient(180deg, rgba(var(--slate-rgb), .55) 0%, rgba(var(--slate-rgb), .32) 100%);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -20px 44px rgba(0,0,0,.2),
+    0 22px 54px rgba(0,0,0,.4);
+}
+/* The toggle is a pill sitting IN the panel, so it gets the inverse treatment —
+   recessed rather than raised — which is what makes the selected half read as
+   lifted out of it. */
+.billing-toggle {
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(0,0,0,.26);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.45), inset 0 -1px 0 rgba(255,255,255,.05);
+}
+.billing-toggle button { position: relative; }
+.billing-toggle button[aria-selected='true'] {
+  box-shadow: 0 6px 18px rgba(var(--orange-rgb), .4), inset 0 1px 0 rgba(255,255,255,.28);
+}
 
 /* ---------- faq ---------- */
 .faq { border-bottom: 1px solid rgba(255,255,255,.1); }
@@ -332,13 +575,10 @@ body {
 .bs__stats { display: grid; grid-template-columns: repeat(3, 1fr); padding: 8px 10px; background: #060a18; }
 .bs__stats strong { display: block; font-size: 9px; font-weight: 800; letter-spacing: -.04em; color: #fff; }
 .bs__stats span { font-size: 3.6px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.4); }
-.bs__plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-top: 5px; }
-.bs__plan { border: .5px solid rgba(255,255,255,.1); border-radius: 3px; padding: 5px; text-align: center; }
-.bs__plan b { display: block; font-size: 4px; color: rgba(255,255,255,.6); font-weight: 600; }
-.bs__plan u { display: block; margin-top: 2px; font-size: 8px; font-weight: 800; letter-spacing: -.03em; text-decoration: none; color: #fff; }
-.bs__plan--on { border-color: rgba(232,82,10,.6); background: rgba(232,82,10,.1); }
 .bs__cta { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 11px 10px; background: radial-gradient(circle at 50% 120%, rgba(232,82,10,.22), transparent 60%), var(--bold-navy); }
 .bs__cta strong { font-size: 8px; font-weight: 800; letter-spacing: -.03em; color: #fff; }
+.bs__quote { margin-top: 4px; font-size: 5.4px; line-height: 1.55; color: rgba(255,255,255,.86); font-style: italic; }
+.bs__quoteby { display: block; margin-top: 3px; font-family: var(--font-mono); font-size: 3.6px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.42); }
 .bs__foot { display: flex; justify-content: space-between; padding: 5px 10px; background: #05080f; font-size: 3.4px; color: rgba(255,255,255,.35); }
 
 /* ============================================================
@@ -417,17 +657,34 @@ body {
    instead of pulsing in unison. Hover/tap overrides the drift
    so an active pill sits still and stays readable.
    ============================================================ */
+/* These animate `translate` and `rotate`, NOT `transform`, and that is
+   load-bearing rather than stylistic.
+
+   `.pill` owns `transform: translate(-50%, calc(-50% + parallax))`. An
+   animation on `transform` REPLACES that declaration outright for as long as
+   it runs — which was forever, since the drift is infinite. Three things were
+   being silently destroyed: the -50%/-50% centering, the scroll parallax that
+   gives the field its depth, and the scale(1.08) an active pill is supposed
+   to get. The field looked flat because its depth cue was never applied.
+
+   `translate` and `rotate` are independent properties that COMPOSE with
+   `transform` (translate, then rotate, then scale, then transform), so the
+   drift and the parallax can now both be true at once. */
 @keyframes pillDrift {
-  0%   { transform: translate3d(0, 0, 0); }
-  25%  { transform: translate3d(calc(var(--amp) * .35 * var(--drift)), calc(var(--amp) * -1), 0); }
-  50%  { transform: translate3d(calc(var(--amp) * .6 * var(--drift)), 0, 0); }
-  75%  { transform: translate3d(calc(var(--amp) * .2 * var(--drift)), calc(var(--amp) * .8), 0); }
-  100% { transform: translate3d(0, 0, 0); }
+  0%   { translate: 0 0; rotate: 0deg; }
+  25%  { translate: calc(var(--amp) * .55 * var(--drift)) calc(var(--amp) * -1.15); rotate: calc(.6deg * var(--drift)); }
+  50%  { translate: calc(var(--amp) * 1 * var(--drift)) calc(var(--amp) * .1); rotate: 0deg; }
+  75%  { translate: calc(var(--amp) * .35 * var(--drift)) calc(var(--amp) * .95); rotate: calc(-.5deg * var(--drift)); }
+  100% { translate: 0 0; rotate: 0deg; }
 }
+/* Exaggerated on purpose — the phone cluster has no parallax depth to carry
+   it, so the motion itself has to do that work. Uses `translate`/`rotate` for
+   the same compositing reason as pillDrift. */
 @keyframes pillBob {
-  0%   { transform: translate3d(0, 0, 0); }
-  50%  { transform: translate3d(calc(2.5px * var(--drift)), -3.5px, 0); }
-  100% { transform: translate3d(0, 0, 0); }
+  0%   { translate: 0 0; rotate: 0deg; }
+  30%  { translate: calc(var(--amp, 6px) * .9 * var(--drift)) calc(var(--amp, 6px) * -1); rotate: calc(1.1deg * var(--drift)); }
+  60%  { translate: calc(var(--amp, 6px) * -.5 * var(--drift)) calc(var(--amp, 6px) * .55); rotate: calc(-.9deg * var(--drift)); }
+  100% { translate: 0 0; rotate: 0deg; }
 }
 
 .pill--drift {
@@ -436,6 +693,63 @@ body {
 }
 /* an active pill stops drifting — motion must never fight reading */
 .pill--drift.is-on { animation-play-state: paused; }
+
+/* the phone cluster */
+/* A drifting cloud, not a list.
+
+   Chips were wrapping two-per-row into what read as a pair of columns. Three
+   things fix that: they are small enough that three or four fit per row, each
+   carries its own vertical nudge so the rows are not flat, and each sits at a
+   slight tilt. Centred wrapping then does the rest. */
+.pill-cluster {
+  display: flex; flex-wrap: wrap;
+  justify-content: center; align-items: center;
+  /* row gap must exceed twice the float amplitude, or two rows drifting
+     toward each other will touch at the extremes */
+  gap: 17px 7px;
+  padding: 10px 0 6px;
+}
+.pill-chip {
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(var(--slate-rgb), .55);
+  backdrop-filter: blur(8px);
+  padding: 9px 15px;
+  font-size: 12.5px; line-height: 1; white-space: nowrap;
+  color: rgba(255,255,255,.78);
+  transition: color .3s ease, border-color .3s ease, background-color .3s ease,
+              box-shadow .35s ease, opacity .35s ease;
+}
+.pill-chip.is-on { opacity: 1; }
+.pill-chip.is-on {
+  color: #fff;
+  border-color: rgba(var(--orange-rgb), .8);
+  background: rgba(var(--orange-rgb), .16);
+  box-shadow: 0 0 0 1px rgba(var(--orange-rgb), .25), 0 0 34px rgba(var(--orange-rgb), .35);
+}
+
+/* The read-out is the whole reason for tapping a chip, so it is the brightest
+   thing on screen once it appears — and it sits in its own panel so the eye
+   can find it instead of hunting for a line of grey text under the cluster. */
+.pill-detail-mobile {
+  margin: 18px auto 0;
+  max-width: 30ch;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(var(--orange-rgb), .35);
+  background: rgba(var(--orange-rgb), .10);
+  box-shadow: 0 0 40px rgba(var(--orange-rgb), .22), inset 0 0 24px rgba(var(--orange-rgb), .07);
+  text-align: center;
+  text-wrap: balance;                 /* no orphan word on its own line */
+  font-size: 14px; line-height: 1.55;
+  color: #fff;
+  text-shadow: 0 0 16px rgba(var(--orange-rgb), .5);
+  animation: pillReadout .45s var(--e-expo) both;
+}
+@keyframes pillReadout {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; transform: none; }
+}
 
 .pill-bob {
   animation: pillBob var(--dur, 8s) ease-in-out var(--delay, 0s) infinite;
@@ -864,16 +1178,30 @@ body {
 }
 /* Gated on JS: before the rotator mounts — or if it never does, or if the
    browser drops SVG filters — the accent renders as ordinary crisp type. The
-   trailing .35px blur just takes the aliasing edge off the threshold. */
+   trailing .35px blur takes the aliasing edge off the threshold. */
 .goo.is-live { filter: url(#bgl-goo-threshold) blur(.35px); }
 .goo__ink {
   display: inline-block;
+  /* left-centre so the word flattens and spreads from its own left edge and
+     the tail after it never shifts */
   transform-origin: left center;
   will-change: filter, opacity, transform;
 }
+/* The in-flow span that carries the slot's width and baseline. It shows a real
+   word until the rotator mounts, so with JS off, on a failed chunk load, or
+   under reduced motion the headline still reads instead of opening on a gap.
 
-/* The threshold erodes glyph edges, so type being filtered has to carry more
-   weight than type that is not. */
+   Once live it is hidden with `color: transparent`, NOT `visibility: hidden`.
+   The animated layers are aria-hidden, so hiding this one from the
+   accessibility tree as well would leave a screen reader hearing
+   "Websites. Scaling Businesses." with the adjective missing. Transparent
+   text keeps the word in the tree and in the layout while painting nothing —
+   and the threshold filter erases zero-alpha glyphs anyway. */
+.goo__sizer { color: inherit; }
+.goo.is-live .goo__sizer { color: transparent; }
+
+/* Kept: the morphing word still wants a touch more weight than its
+   surroundings so it holds up while it is deforming. */
 .goo.is-live .goo__ink { font-weight: 800; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -964,3 +1292,202 @@ body {
   transition: border-color .3s ease, color .3s ease;
 }
 .cform-again:hover { color: var(--bold-orange); border-bottom-color: var(--bold-orange); }
+
+/* ============================================================
+   /reviews — the walkthrough and the widget
+   ============================================================ */
+
+.rf-grid { display: grid; gap: clamp(28px, 4vw, 56px); align-items: start; }
+@media (min-width: 900px) { .rf-grid { grid-template-columns: minmax(0, 1fr) 320px; } }
+
+.rf-steps { display: grid; gap: 6px; list-style: none; }
+.rf-step {
+  display: grid; grid-template-columns: 42px 1fr; gap: 14px;
+  width: 100%; text-align: left; padding: 16px 18px;
+  border-radius: 18px; border: 1px solid transparent;
+  transition: background-color .35s ease, border-color .35s ease;
+}
+.rf-step:hover { background: rgba(255,255,255,.03); }
+.rf-step.is-on {
+  border-color: rgba(var(--orange-rgb), .38);
+  background: rgba(var(--orange-rgb), .08);
+}
+.rf-step__n {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px; letter-spacing: .18em; color: rgba(255,255,255,.32); padding-top: 3px;
+}
+.rf-step.is-on .rf-step__n { color: var(--bold-orange); }
+.rf-step__body { display: grid; gap: 5px; }
+.rf-step__t { font-size: 16px; font-weight: 700; color: #fff; }
+.rf-step__c { font-size: 14px; line-height: 1.55; color: var(--bold-muted); }
+.rf-step__note {
+  font-size: 12.5px; line-height: 1.6; color: rgba(255,255,255,.5);
+  border-left: 2px solid rgba(var(--orange-rgb), .4); padding-left: 10px; margin-top: 4px;
+}
+
+/* the phone */
+.rf-phone {
+  position: relative; width: 300px; max-width: 100%; margin: 0 auto;
+  aspect-ratio: 300 / 600; border-radius: 40px;
+  background: linear-gradient(160deg, #232c3d, #0c121c);
+  padding: 11px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.09), 0 34px 80px rgba(0,0,0,.6);
+}
+@media (min-width: 900px) { .rf-phone { position: sticky; top: 96px; } }
+.rf-phone__notch {
+  position: absolute; left: 50%; top: 18px; transform: translateX(-50%);
+  width: 88px; height: 20px; border-radius: 99px; background: #05080f; z-index: 2;
+}
+.rf-phone__screen {
+  height: 100%; border-radius: 30px; overflow: hidden;
+  background: #070c16; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+.rf-scr { height: 100%; display: flex; flex-direction: column; padding: 40px 14px 16px; gap: 10px; animation: rfIn .4s var(--e-expo) both; }
+@keyframes rfIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rf-scr__bar { font-family: var(--font-mono), ui-monospace, monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.36); }
+.rf-scr__hint { margin-top: auto; font-size: 10.5px; line-height: 1.5; color: rgba(255,255,255,.42); }
+
+.rf-job { border-radius: 14px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); padding: 14px; }
+.rf-job__t { font-size: 13px; font-weight: 700; color: #fff; }
+.rf-job__m { margin-top: 3px; font-size: 11px; color: rgba(255,255,255,.5); }
+.rf-job__done { display: inline-block; margin-top: 10px; border-radius: 99px; background: rgba(74,222,128,.16); color: #7ee2a8; font-size: 10.5px; padding: 4px 10px; }
+
+.rf-bubble { border-radius: 16px 16px 16px 4px; background: rgba(255,255,255,.08); padding: 12px 14px; font-size: 12px; line-height: 1.5; color: rgba(255,255,255,.86); }
+.rf-bubble__link { display: block; margin-top: 8px; color: #7fb2ff; font-size: 11.5px; }
+
+.rf-gbox { border-radius: 14px; background: #fff; padding: 14px; color: #202124; }
+.rf-gbox__biz { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; }
+.rf-gbox__logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(140deg, #e8520a, #f59f5b); }
+.rf-gbox__field { margin-top: 10px; border-radius: 8px; border: 1px solid #dadce0; padding: 9px 10px; font-size: 11px; color: #80868b; }
+.rf-gbox__btn { display: inline-block; margin-top: 10px; border-radius: 99px; background: #1a73e8; color: #fff; font-size: 11px; font-weight: 600; padding: 6px 14px; }
+
+.rf-stars { display: inline-flex; gap: 2px; }
+.rf-stars svg { width: 13px; height: 13px; fill: rgba(255,255,255,.18); }
+.rf-stars svg.is-on { fill: #fbbc04; }
+.rf-stars--lg svg { width: 24px; height: 24px; }
+.rf-gbox .rf-stars svg { fill: #dadce0; }
+.rf-gbox .rf-stars svg.is-on { fill: #fbbc04; }
+
+.rf-rating { display: flex; align-items: center; gap: 8px; font-size: 11px; color: rgba(255,255,255,.55); }
+.rf-rating strong { font-size: 22px; color: #fff; font-weight: 800; }
+.rf-rev { border-radius: 14px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); padding: 12px; display: grid; gap: 7px; }
+.rf-rev--new { border-color: rgba(var(--orange-rgb), .45); background: rgba(var(--orange-rgb), .1); }
+.rf-rev__badge { justify-self: start; border-radius: 99px; background: var(--bold-orange); color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; }
+.rf-rev p { font-size: 11.5px; line-height: 1.5; color: rgba(255,255,255,.82); }
+.rf-rev__by { font-size: 10px; color: rgba(255,255,255,.45); }
+.rf-reply { margin-left: 14px; border-left: 2px solid rgba(var(--orange-rgb), .5); padding-left: 11px; display: grid; gap: 5px; }
+.rf-reply__who { font-size: 10px; font-weight: 700; color: var(--bold-orange); }
+.rf-reply p { font-size: 11px; line-height: 1.5; color: rgba(255,255,255,.7); }
+
+.rf-sitewrap { border-radius: 14px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); padding: 12px; display: grid; gap: 9px; }
+.rf-site__lbl { font-family: var(--font-mono), ui-monospace, monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--bold-orange); }
+.rf-card { border-radius: 10px; background: rgba(255,255,255,.05); padding: 9px 10px; display: grid; gap: 5px; }
+.rf-card p { font-size: 10.5px; line-height: 1.45; color: rgba(255,255,255,.8); }
+.rf-card span { font-size: 9.5px; color: rgba(255,255,255,.42); }
+
+/* the full-size widget */
+.rw { border-radius: 24px; border: 1px solid rgba(255,255,255,.12);
+  background: radial-gradient(120% 70% at 50% -10%, rgba(255,255,255,.07) 0%, transparent 58%),
+              linear-gradient(180deg, rgba(var(--slate-rgb), .6), rgba(var(--slate-rgb), .35));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 22px 54px rgba(0,0,0,.4); padding: clamp(20px, 3vw, 30px); }
+.rw-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.rw-score { display: flex; align-items: center; gap: 14px; }
+.rw-score strong { font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 800; line-height: 1; }
+.rw-score > div > span:not(.rf-stars) { display: block; margin-top: 4px; font-size: 12.5px; color: var(--bold-muted); }
+/* the star row is always one horizontal line, wherever it is used */
+.rf-stars { display: inline-flex; flex-wrap: nowrap; white-space: nowrap; align-items: center; }
+.rw-score .rf-stars svg { width: 16px; height: 16px; }
+.rw-badge { border-radius: 99px; border: 1px solid rgba(var(--orange-rgb), .4); background: rgba(var(--orange-rgb), .1); color: var(--bold-orange); font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; padding: 6px 12px; }
+.rw-grid { margin-top: 20px; display: grid; gap: 12px; }
+@media (min-width: 720px) { .rw-grid { grid-template-columns: 1fr 1fr; } }
+.rw-card { border-radius: 16px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); padding: 16px 18px; display: grid; gap: 8px; }
+.rw-card__t { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,.86); }
+.rw-card__by { font-size: 12px; font-weight: 600; color: #fff; }
+.rw-card__by span { font-weight: 400; color: rgba(255,255,255,.4); }
+
+/* ============================================================
+   /revisions — the change-request list
+   ============================================================ */
+
+.rv-panel { border-radius: 24px; border: 1px solid rgba(255,255,255,.1);
+  background: radial-gradient(120% 70% at 50% -8%, rgba(255,255,255,.06) 0%, transparent 58%),
+              linear-gradient(180deg, rgba(var(--slate-rgb), .5), rgba(var(--slate-rgb), .3));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 18px 44px rgba(0,0,0,.34);
+  padding: clamp(20px, 3vw, 30px); }
+
+.rv-label { display: block; font-size: 14px; font-weight: 600; color: #fff; }
+.rv-hint { font-size: 12.5px; line-height: 1.55; color: rgba(255,255,255,.45); }
+.rv-optional { font-size: 11px; font-weight: 400; text-transform: uppercase; letter-spacing: .16em; color: rgba(255,255,255,.3); }
+.rv-err { margin-top: 8px; font-size: 12.5px; color: var(--bold-orange); }
+
+.rv-input { width: 100%; margin-top: 8px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03);
+  padding: 12px 14px; font-size: 15px; color: #fff; outline: none;
+  transition: border-color .3s ease; }
+.rv-input::placeholder { color: rgba(255,255,255,.26); }
+.rv-input:focus { border-color: var(--bold-orange); }
+
+.rv-sub { display: block; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.82); }
+
+.rv-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.rv-chip { display: inline-flex; align-items: center; min-height: 40px;
+  border-radius: 999px; border: 1px solid rgba(255,255,255,.14);
+  padding: 0 14px; font-size: 12.5px; color: rgba(255,255,255,.7);
+  transition: color .25s ease, border-color .25s ease, background-color .25s ease; }
+.rv-chip:hover { color: #fff; border-color: rgba(255,255,255,.4); }
+.rv-chip.is-on { color: #fff; border-color: rgba(var(--orange-rgb), .8); background: rgba(var(--orange-rgb), .18); }
+
+/* the decision is the most consequential control on the page, so it is the
+   largest and the only one that fills the width */
+.rv-decision { display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 54px; border-radius: 14px; border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.02); padding: 0 18px; text-align: left;
+  font-size: 14.5px; color: rgba(255,255,255,.78);
+  transition: color .25s ease, border-color .25s ease, background-color .25s ease; }
+.rv-decision:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+.rv-decision.is-on { color: #fff; border-color: rgba(var(--orange-rgb), .75); background: rgba(var(--orange-rgb), .12); }
+.rv-decision__dot { width: 16px; height: 16px; border-radius: 999px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.35); transition: box-shadow .25s ease, border-color .25s ease; }
+.rv-decision.is-on .rv-decision__dot { border-color: var(--bold-orange); box-shadow: inset 0 0 0 4px var(--bold-orange); }
+
+.rv-count { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px;
+  letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+
+.rv-req { border-radius: 20px; border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.025); padding: clamp(16px, 2.4vw, 22px); }
+.rv-req__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.rv-req__n { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px;
+  letter-spacing: .2em; color: var(--bold-orange); }
+.rv-req__x { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px;
+  font-size: 11.5px; color: rgba(255,255,255,.35); transition: color .25s ease; }
+.rv-req__x:hover { color: var(--bold-orange); }
+
+.rv-shot { display: block; margin-top: 8px; cursor: pointer; border-radius: 12px;
+  border: 1px dashed rgba(255,255,255,.2); background: rgba(255,255,255,.02);
+  padding: 14px; text-align: center; font-size: 12.5px; color: rgba(255,255,255,.5);
+  transition: border-color .25s ease, color .25s ease; }
+.rv-shot:hover { border-color: rgba(var(--orange-rgb), .6); color: #fff; }
+
+.rv-add { margin-top: 16px; display: inline-flex; align-items: center; min-height: 48px;
+  border-radius: 999px; border: 1px dashed rgba(255,255,255,.25); padding: 0 22px;
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,.75);
+  transition: border-color .25s ease, color .25s ease; }
+.rv-add:hover { border-color: var(--bold-orange); color: #fff; }
+
+/* the new-files dropzone on /revisions */
+.rv-drop { margin-top: 16px; cursor: pointer; border-radius: 18px;
+  border: 1px dashed rgba(255,255,255,.2); background: rgba(255,255,255,.02);
+  padding: 34px 20px; text-align: center;
+  transition: border-color .25s ease, background-color .25s ease; }
+.rv-drop:hover { border-color: rgba(255,255,255,.4); }
+.rv-drop.is-over { border-color: var(--bold-orange); background: rgba(var(--orange-rgb), .1); }
+.rv-drop__t { font-size: 15px; font-weight: 600; color: #fff; }
+.rv-drop__s { margin-top: 6px; font-size: 12.5px; color: rgba(255,255,255,.45); }
+
+.rv-file { display: flex; align-items: center; gap: 14px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03);
+  padding: 12px 16px; font-size: 13px; color: rgba(255,255,255,.8); }
+.rv-file__x { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px; color: rgba(255,255,255,.4); transition: color .25s ease; }
+.rv-file__x:hover { color: var(--bold-orange); }

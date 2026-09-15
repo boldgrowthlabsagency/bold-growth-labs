@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Logo from './Logo';
 import MagneticButton from './MagneticButton';
+import Scramble from './Scramble';
 import { nav } from '@/lib/data';
 
 export default function Navbar() {
@@ -30,12 +31,12 @@ export default function Navbar() {
         </a>
 
         <nav className="hidden items-center gap-9 md:flex" aria-label="Primary">
-          {nav.map((n) => (
+          {nav.map((n, i) => (
             <a
               key={n.href} href={n.href}
               className="group relative text-[13.5px] text-muted transition-colors duration-300 hover:text-white"
             >
-              {n.label}
+              <Scramble delay={140 + i * 110}>{n.label}</Scramble>
               <span className="absolute -bottom-1.5 left-0 h-px w-0 bg-orange transition-[width] duration-300 ease-out group-hover:w-full" />
             </a>
           ))}

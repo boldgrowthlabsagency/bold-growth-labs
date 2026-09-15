@@ -27,7 +27,25 @@ function useCountUp(value: number) {
 export default function AddOnBuilder() {
   const [planId, setPlanId] = useState('redesign');
   const [picked, setPicked] = useState<Record<string, boolean>>({});
-  const toggle = (id: string) => setPicked((p) => ({ ...p, [id]: !p[id] }));
+  /* Selecting an item clears anything it replaces. The Local Growth Bundle and
+     the two services inside it would otherwise all be tickable at once, and the
+     running total would show a price no client would ever be quoted. */
+  const toggle = (id: string) =>
+    setPicked((p) => {
+      const on = !p[id];
+      const next = { ...p, [id]: on };
+      if (!on) return next;
+      const item = [...addOnsOnce, ...addOnsMonthly].find((a) => a.id === id);
+      for (const other of item?.excludes ?? []) next[other] = false;
+      return next;
+    });
+
+  /* One list at a time. Stacking both groups made this the longest block on
+     the page and pushed the running total below the fold on a phone, which is
+     the one thing that has to stay visible while you are picking. Selections
+     persist across the switch — `picked` is keyed by id, not by which tab is
+     showing — so nothing is lost by flipping between them. */
+  const [billing, setBilling] = useState<'once' | 'monthly'>('once');
 
   /* One tip open at a time, tracked here rather than per-row, so opening a
      second one closes the first without any row needing to know about its
@@ -55,7 +73,7 @@ export default function AddOnBuilder() {
         <SectionReveal delay={60}><h2 className="display">Make it <span className="text-orange">yours.</span></h2></SectionReveal>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.65fr)]">
-          <div className="rounded-[var(--r-lg)] border border-white/10 bg-white/[0.02] p-6 sm:p-8">
+          <div className="builder-panel p-6 sm:p-8">
             <div className="mb-7 flex flex-wrap gap-2">
               {plans.map((p) => (
                 <button key={p.id} onClick={() => setPlanId(p.id)}
@@ -67,10 +85,35 @@ export default function AddOnBuilder() {
               ))}
             </div>
 
-            <AddGroup title="One-time" items={addOnsOnce} picked={picked} toggle={toggle}
-                      tip={tip} setTip={setTip} />
-            <AddGroup title="Monthly" items={addOnsMonthly} picked={picked} toggle={toggle}
-                      tip={tip} setTip={setTip} className="mt-8" />
+            <div className="billing-toggle mb-6 inline-flex p-1" role="tablist" aria-label="Billing type">
+              {([['once', 'One-time'], ['monthly', 'Monthly']] as const).map(([k, label]) => {
+                const on = billing === k;
+                const n = (k === 'once' ? addOnsOnce : addOnsMonthly)
+                  .filter((a) => picked[a.id]).length;
+                return (
+                  <button
+                    key={k} type="button" role="tab" aria-selected={on}
+                    onClick={() => setBilling(k)}
+                    className={`inline-flex min-h-[40px] items-center gap-2 rounded-full px-5 text-[12.5px] font-semibold transition-colors ${
+                      on ? 'bg-orange text-white' : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    {label}
+                    {/* the count is why hiding a list is safe — you can always
+                        see that something is selected on the other tab */}
+                    {n > 0 && (
+                      <span className={`rounded-full px-1.5 py-0.5 font-mono text-[9.5px] ${on ? 'bg-white/25' : 'bg-orange/25 text-orange'}`}>
+                        {n}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {billing === 'once'
+              ? <AddGroup title="One-time" items={addOnsOnce} picked={picked} toggle={toggle} tip={tip} setTip={setTip} />
+              : <AddGroup title="Monthly" items={addOnsMonthly} picked={picked} toggle={toggle} tip={tip} setTip={setTip} />}
           </div>
 
           <aside className="h-fit rounded-[var(--r-lg)] border border-orange/25 bg-[rgba(var(--orange-rgb),.05)] p-7 lg:sticky lg:top-24">

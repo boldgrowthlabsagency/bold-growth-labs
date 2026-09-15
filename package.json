@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "blob:link": "node scripts/blob-link.mjs"
   },
   "dependencies": {
+    "@paper-design/shaders-react": "^0.0.80",
+    "@vercel/blob": "^2.8.0",
     "framer-motion": "11.11.9",
     "gsap": "3.12.5",
     "lenis": "1.1.14",
