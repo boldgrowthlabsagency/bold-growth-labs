@@ -13,6 +13,7 @@ import FinalCTA from '@/components/FinalCTA';
 import Footer from '@/components/Footer';
 import CustomCursor from '@/components/CustomCursor';
 import SmoothScroll from '@/components/SmoothScroll';
+import ReferralBar from '@/components/ReferralBar';
 
 export default function Page() {
   return (
@@ -34,6 +35,7 @@ export default function Page() {
         <FinalCTA />
       </main>
       <Footer />
+      <ReferralBar />
     </>
   );
 }

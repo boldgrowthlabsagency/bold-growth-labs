@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { plans, PHONE } from '@/lib/data';
+import { REFERRAL } from '@/lib/blackfriday';
+import { useReferral } from './useReferral';
 import SectionReveal from './SectionReveal';
 import MagneticButton from './MagneticButton';
 
@@ -16,6 +18,8 @@ export default function Pricing() {
   const grid = useRef<HTMLDivElement>(null);
   const cards = useRef<(HTMLDivElement | null)[]>([]);
   const [ps, setPs] = useState<number[]>(() => plans.map(() => 0));
+  /* A referred visitor sees the $100 credit taken off every plan. */
+  const referred = !!useReferral();
 
   useEffect(() => {
     const el = grid.current;
@@ -81,8 +85,10 @@ export default function Pricing() {
                 {pl.featured && <span className="plan__badge">Most popular</span>}
                 <h3 className="plan__name">{pl.name}</h3>
                 <p className="plan__price">
-                  {pl.from && <em>From </em>}${pl.price.toLocaleString()}
+                  {referred && <s className="mr-2 text-[.42em] font-semibold text-white/35">${pl.price.toLocaleString()}</s>}
+                  {pl.from && <em>From </em>}${(referred ? pl.price - REFERRAL.give : pl.price).toLocaleString()}
                 </p>
+                {referred && <p className="mt-2 text-[12px] font-semibold text-orange">${REFERRAL.give} referral credit applied{pl.tiers ? ' to any tier' : ''}</p>}
                 <p className="plan__blurb">{pl.blurb}</p>
                 {pl.tiers && (
                   <ul className="plan__tiers">{pl.tiers.map((x) => <li key={x}>{x}</li>)}</ul>

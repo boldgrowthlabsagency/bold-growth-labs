@@ -1,6 +1,8 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { addOnsOnce, addOnsMonthly, plans, type AddOn } from '@/lib/data';
+import { REFERRAL } from '@/lib/blackfriday';
+import { useReferral } from './useReferral';
 import SectionReveal from './SectionReveal';
 import MagneticButton from './MagneticButton';
 
@@ -26,6 +28,8 @@ function useCountUp(value: number) {
 
 export default function AddOnBuilder() {
   const [planId, setPlanId] = useState('redesign');
+  /* A referred visitor's $100 credit comes off the build, once. */
+  const credit = useReferral() ? REFERRAL.give : 0;
   const [picked, setPicked] = useState<Record<string, boolean>>({});
   /* Selecting an item clears anything it replaces. The Local Growth Bundle and
      the two services inside it would otherwise all be tickable at once, and the
@@ -60,7 +64,7 @@ export default function AddOnBuilder() {
 
   const plan = plans.find((p) => p.id === planId)!;
   const all = [...addOnsOnce, ...addOnsMonthly];
-  const once = all.filter((a) => picked[a.id]).reduce((s, a) => s + (a.once ?? 0), plan.price);
+  const once = all.filter((a) => picked[a.id]).reduce((s, a) => s + (a.once ?? 0), plan.price - credit);
   const monthly = all.filter((a) => picked[a.id]).reduce((s, a) => s + (a.monthly ?? 0), 0);
 
   const onceShown = useCountUp(once);
@@ -80,7 +84,7 @@ export default function AddOnBuilder() {
                   className={`inline-flex min-h-[44px] items-center rounded-full px-5 text-[12.5px] font-semibold transition-colors ${
                     planId === p.id ? 'bg-orange text-white' : 'border border-white/15 text-white/65 hover:text-white'
                   }`}>
-                  {p.name} ${p.price}
+                  {p.name} ${(p.price - credit).toLocaleString()}
                 </button>
               ))}
             </div>
@@ -128,6 +132,7 @@ export default function AddOnBuilder() {
               ${monthlyShown.toLocaleString()}<span className="text-sm font-medium text-white/50">/mo</span>
             </p>
             <p className="mt-6 text-xs leading-relaxed text-white/45">
+              {credit > 0 && <>Includes your ${credit} referral credit. </>}
               50% up front, 50% when you&rsquo;re live. No payment now &mdash; this just tells us what to quote.
             </p>
             <MagneticButton href="#contact" className="mt-6 w-full justify-center">Start My Build</MagneticButton>

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { CHOICES, APPLY_FIELDS } from '@/lib/hiring';
+import { CHOICES, APPLY_FIELDS, OUTCOME } from '@/lib/hiring';
 
 /* ============================================================
    APPOINTMENT CENTER APPLICATION
@@ -84,13 +84,16 @@ export default function ApplyForm() {
   }, [state]);
 
   if (state === 'sent') {
+    /* The one answer that changes what they are told: someone who is not open
+       to commission hears so now instead of in a meeting. */
+    const open = str('commission') !== 'No';
+    const out = open ? OUTCOME.yes : OUTCOME.no;
     return (
       <div id="apply-sent" className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center" role="status" aria-live="polite">
-        <p className="text-4xl" aria-hidden>✓</p>
-        <h2 className="mt-4 text-[length:var(--step-2)] font-extrabold leading-tight">You&rsquo;re in.</h2>
+        <p className="text-4xl" aria-hidden>{open ? '✓' : '—'}</p>
+        <h2 className="mt-4 text-[length:var(--step-2)] font-extrabold leading-tight">{out.heading}</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-muted">
-          Thanks, {str('name').split(' ')[0] || 'friend'}. If it looks like a fit, expect a call or text
-          from us soon — keep your phone close.
+          Thanks, {str('name').split(' ')[0] || 'friend'}. {out.body}
         </p>
       </div>
     );

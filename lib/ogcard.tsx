@@ -22,6 +22,7 @@ export function OgCard({
   eyebrow,
   title,
   accent,
+  lead,
   sub,
   background,
 }: {
@@ -29,6 +30,9 @@ export function OgCard({
   title: string;
   /** the words carried in orange — the site sets every heading this way */
   accent?: string;
+  /** white words kept on the accent's line, so a title can't strand them alone
+      ("your" / "growth" on two lines) */
+  lead?: string;
   sub: string;
   /** a full-bleed still behind the card (data URI); a navy veil keeps the text legible */
   background?: string;
@@ -89,7 +93,12 @@ export function OgCard({
           }}
         >
           <span style={{ marginRight: accent ? 20 : 0 }}>{title}</span>
-          {accent ? <span style={{ color: '#E8520A' }}>{accent}</span> : null}
+          {accent ? (
+            <span style={{ display: 'flex' }}>
+              {lead ? <span style={{ marginRight: 20 }}>{lead}</span> : null}
+              <span style={{ color: '#E8520A' }}>{accent}</span>
+            </span>
+          ) : null}
         </div>
         <div
           style={{

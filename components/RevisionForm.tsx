@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  SECTIONS, DEVICES, PRIORITIES, DECISIONS, ROUND_OPTIONS, SHOT, ASSETS,
+  SECTIONS, DEVICES, PRIORITIES, DECISIONS, ROUND_OPTIONS, SHOT, ASSETS, EXAMPLE,
   emptyRequest, type RevisionRequest, type Asset,
 } from '@/lib/revisions';
 import { INBOX } from '@/lib/data';
@@ -20,7 +20,16 @@ import { INBOX } from '@/lib/data';
    deliberately reused rather than copied — duplicating the one
    piece of security-critical code here would be the wrong kind of
    tidy.
+
+   The list is saved to the client's own browser as they type. A
+   client working through a site on a phone gets interrupted — a
+   call comes in, the tab is dropped — and losing eleven carefully
+   written changes is the one thing that would send them back to
+   texting us. Uploaded files are not restored (the blob reference
+   would outlive the page), so the draft keeps text only.
    ============================================================ */
+
+const DRAFT = 'bgl-revisions-draft-v1';
 
 type State = 'idle' | 'sending' | 'sent' | 'error';
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -39,8 +48,59 @@ export default function RevisionForm() {
   const [uploadsOff, setUploadsOff] = useState(false);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [restored, setRestored] = useState(false);
   const assetInput = useRef<HTMLInputElement>(null);
   const listEnd = useRef<HTMLDivElement>(null);
+  /* State, not a ref: the save effect must not run until the restored values
+     have actually been committed. With a ref it runs in the same commit as the
+     restore, writing the still-empty initial rows back over the draft — which
+     ate a restored list exactly once before this was caught. */
+  const [hydrated, setHydrated] = useState(false);
+
+  /* Restore a draft, if there is one. Runs before the save effect can write,
+     so an empty first render never wipes what is stored. */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d.client) setClient(d.client);
+        if (d.name) setName(d.name);
+        if (d.email) setEmail(d.email);
+        if (d.decision) setDecision(d.decision);
+        if (d.round) setRound(d.round);
+        if (d.notes) setNotes(d.notes);
+        if (Array.isArray(d.rows) && d.rows.length) setRows(d.rows);
+        if (d.rows?.some((r: RevisionRequest) => r.detail?.trim()) || d.client) setRestored(true);
+      }
+    } catch {
+      /* a blocked or full store is not worth a message */
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      /* text only — a screenshot's blob reference would not survive the page */
+      const strip = rows.map(({ page, section, device, priority, detail }) => ({
+        page, section, device, priority, detail,
+      }));
+      localStorage.setItem(DRAFT, JSON.stringify({ client, name, email, decision, round, notes, rows: strip }));
+    } catch {
+      /* ignore */
+    }
+  }, [hydrated, client, name, email, decision, round, notes, rows]);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT); } catch { /* ignore */ }
+  };
+
+  const startFresh = () => {
+    clearDraft();
+    setClient(''); setName(''); setEmail(''); setDecision(''); setRound(ROUND_OPTIONS[0]);
+    setNotes(''); setRows([emptyRequest()]); setAssets([]); setErrors({}); setRestored(false);
+  };
 
   /* Ask the signing route whether a store is attached, rather than waiting for
      an upload to fail. A dropzone that cannot accept anything is worse than no
@@ -141,6 +201,16 @@ export default function RevisionForm() {
       bad.rows = 'Add at least one change, or switch to “Approved — publish as is”.';
     }
 
+    /* A block with a page, a chip or a screenshot but no description would be
+       dropped on send without a word — including the file they just waited for.
+       Say so instead of silently losing it. */
+    const started = rows.findIndex(
+      (r) => !r.detail.trim() && (r.page.trim() || r.section || r.device || r.priority || r.shotPath),
+    );
+    if (started > -1) {
+      bad.rows = `Change ${started + 1} has nothing written in it yet — say what should change, or remove it.`;
+    }
+
     setErrors(bad);
     if (Object.keys(bad).length) {
       document.getElementById(`f-${Object.keys(bad)[0]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -159,6 +229,7 @@ export default function RevisionForm() {
           botcheck: (document.getElementById('rev-bot') as HTMLInputElement)?.value || '',
         }),
       });
+      if (res.ok) clearDraft();
       setState(res.ok ? 'sent' : 'error');
     } catch {
       setState('error');
@@ -185,6 +256,15 @@ export default function RevisionForm() {
 
   return (
     <form onSubmit={submit} noValidate className="mx-auto max-w-[820px]">
+      {restored && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/12 bg-white/[0.04] px-5 py-4 text-[13px]">
+          <span className="text-white/70">We kept what you had typed last time.</span>
+          <button type="button" onClick={startFresh} className="underline underline-offset-2 hover:text-orange">
+            Start fresh
+          </button>
+        </div>
+      )}
+
       {/* ---- who, and the decision ---- */}
       <section className="rv-panel">
         <div className="grid gap-6 sm:grid-cols-2">
@@ -289,14 +369,25 @@ export default function RevisionForm() {
                   </div>
                 </div>
 
-                <label className="rv-sub">
-                  What should change?
+                <div>
+                  <label className="rv-sub" htmlFor={`detail-${i}`}>
+                    What should change?
+                  </label>
                   <textarea
+                    id={`detail-${i}`}
                     rows={3} value={r.detail} onChange={(e) => patch(i, { detail: e.target.value })}
                     className="rv-input resize-y leading-relaxed"
                     placeholder="Say it however you would say it out loud."
                   />
-                </label>
+                  {/* the example sits where the writing happens, which is the only
+                      place it is any use */}
+                  {i === 0 && (
+                    <div className="rv-eg">
+                      <p><span className="rv-eg__y" aria-hidden>✓</span> {EXAMPLE.good}</p>
+                      <p className="mt-2 text-white/35"><span className="rv-eg__n" aria-hidden>✕</span> {EXAMPLE.vague}</p>
+                    </div>
+                  )}
+                </div>
 
                 {!uploadsOff && (
                   <div>
@@ -377,6 +468,22 @@ export default function RevisionForm() {
         </p>
       )}
 
+      {/* On a phone the send button is a long way below the last change, so the
+          count and the button follow the client down the page. */}
+      <div className="rv-bar md:hidden" aria-hidden={state === 'sending'}>
+        <span className="text-[12.5px] text-white/60">
+          {rows.filter((r) => r.detail.trim()).length} change
+          {rows.filter((r) => r.detail.trim()).length === 1 ? '' : 's'} listed
+        </span>
+        <button
+          type="submit"
+          disabled={state === 'sending' || Object.values(busy).some(Boolean) || assets.some((a) => a.pending)}
+          className="inline-flex min-h-[44px] items-center rounded-full bg-orange px-6 text-[13px] font-semibold text-white disabled:opacity-50"
+        >
+          {state === 'sending' ? 'Sending…' : 'Send'}
+        </button>
+      </div>
+
       <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-white/10 pt-7">
         <button
           type="submit"
@@ -385,6 +492,7 @@ export default function RevisionForm() {
         >
           {state === 'sending' ? 'Sending…' : (Object.values(busy).some(Boolean) || assets.some((a) => a.pending)) ? 'Waiting for uploads…' : 'Send this over'}
         </button>
+        <span className="text-[12.5px] text-white/40">Saved in this browser as you type.</span>
         {state === 'error' && (
           <p className="w-full text-[13px] text-orange">
             That did not send. Try again, or email <a className="underline" href={`mailto:${INBOX}`}>{INBOX}</a>.

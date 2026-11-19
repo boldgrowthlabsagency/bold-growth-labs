@@ -58,7 +58,9 @@ export async function POST(req: Request) {
        pasted text in one cell helps nobody. */
     payload[f] = (Array.isArray(v) ? v.join(', ') : String(v ?? '')).slice(0, 2000);
   }
-  payload.source = String(body.source ?? 'boldgrowthlabs.io');
+  payload.source = String(body.source ?? 'boldgrowthlabs.io').slice(0, 120);
+  /* Not an enquiry column — the Apps Script uses it to log the referral on its own tab. */
+  payload.referredBy = String(body.referredBy ?? '').trim().slice(0, 60);
 
   try {
     const ac = new AbortController();

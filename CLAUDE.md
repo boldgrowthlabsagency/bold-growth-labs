@@ -44,10 +44,13 @@ under reduced motion). Keep it off the main page.
 ### One page, content-driven
 
 `app/page.tsx` is the entire public site: a fixed sequence of section
-components rendered once. Four further routes exist but are **unlisted** —
+components rendered once. Five further routes exist but are **unlisted** —
 `/start` (the new-build questionnaire), `/reviews` (the review-system
 walkthrough), `/revisions` (change requests on a built-but-not-live site) and
-`/apply` (appointment center applicants, linked from an Instagram story). All
+`/apply` (appointment center applicants, linked from an Instagram story) and
+`/audit` (the growth audit for owners who want to scale — questions and the
+answer → service scoring live in `lib/audit.ts`, rows go to a `Growth audits`
+tab via `form: 'audit'`). All
 are `noindex, nofollow, nocache` and none is in `nav`: they are links you send
 or post deliberately, not pages a cold visitor should meet instead of the
 contact form. Each has its own `opengraph-image.tsx` built on `lib/ogcard.tsx`
@@ -252,6 +255,14 @@ Component-level gotchas worth carrying forward:
   `requestAnimationFrame` lerp so it never thrashes layout.
 - `ConceptModal` must `stopPropagation()` on arrow keys, or its own
   prev/next handler steals keyboard control from any slider inside a build.
+- `RevisionForm` autosaves a **text-only** draft to `localStorage` (uploads are
+  left out — a blob reference would outlive the page). The save effect is
+  gated on a `hydrated` **state** flag, not a ref: with a ref it runs in the
+  same commit as the restore and writes the still-empty initial rows back over
+  the draft, which silently ate a restored list once. The page's guidance —
+  `HOW_IT_WORKS`, `CHECKLIST`, `SCOPE`, `NEXT_STEPS`, `EXAMPLE` — lives in
+  `lib/revisions.ts` beside the field options, and `RevisionChecklist` ticks
+  are the client's own: stored in their browser, never submitted.
 - `IntakeForm` swallows `dragover`/`drop` at the *window* level. Without it a
   file dropped outside the dropzone makes the browser navigate to that file and
   every answer typed so far is gone, with no warning and no way back.

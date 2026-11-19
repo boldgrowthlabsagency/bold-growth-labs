@@ -53,10 +53,16 @@ export default function ApplyPage() {
           </h1>
           <p className="mt-5 text-[16px] leading-relaxed text-muted">{ROLE.summary}</p>
           <p className="mt-2 text-[13px] text-white/50">About a minute to apply · mostly taps</p>
-          <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-[12.5px] text-white/70">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange" aria-hidden />
-            {ROLE.perk}
-          </p>
+          {/* said up front, not buried: an applicant reached a meeting believing
+              the role paid hourly */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[ROLE.perk, 'Commission based · no hourly rate'].map((t) => (
+              <p key={t} className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-[12.5px] text-white/70">
+                <span className="h-1.5 w-1.5 rounded-full bg-orange" aria-hidden />
+                {t}
+              </p>
+            ))}
+          </div>
         </header>
 
         <ApplyForm />

@@ -6,3 +6,18 @@ out
 .env*
 .vercel
 *.tsbuildinfo
+
+# Other client projects and raw assets that live alongside this repo on the
+# Desktop — mirrored from .vercelignore. None of it belongs to this site, and
+# some of it is client material that should never reach a public remote.
+/Barbeer
+/Campos Roofing
+/Extreme Roofs
+/Meridian digital assets /
+/Torres Custom Painting
+/Tru Pro Painting
+/bgl-trash
+/sunline-reference
+/vida-media-export-v2
+/Ridgeline_Roofing_Image_Library.zip
+/Screenshot*.png

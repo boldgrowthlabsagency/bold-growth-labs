@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import SectionReveal from './SectionReveal';
+import { useReferral } from './useReferral';
 import { PHONE, PHONE_DISPLAY, NEEDS, INBOX } from '@/lib/data';
 
 /* ============================================================
@@ -18,6 +19,7 @@ type State = 'idle' | 'sending' | 'sent' | 'error';
 
 export default function ContactForm() {
   const [need, setNeed] = useState<string[]>([]);
+  const referredBy = useReferral();
   const [state, setState] = useState<State>('idle');
   const [msg, setMsg] = useState('');
 
@@ -58,7 +60,9 @@ export default function ContactForm() {
           needs: need,
           details: f.get('details'),
           botcheck: f.get('botcheck') || '',
-          source: 'boldgrowthlabs.io',
+          source: referredBy ? `boldgrowthlabs.io · referred by ${referredBy}` : 'boldgrowthlabs.io',
+          /* also sent on its own: the Apps Script copies referred enquiries to the Referrals tab */
+          referredBy,
         }),
       });
 

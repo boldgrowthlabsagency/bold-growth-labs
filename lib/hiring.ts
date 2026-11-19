@@ -54,6 +54,15 @@ export const CHOICES: Choice[] = [
     multi: true,
   },
   {
+    /* Asked because an applicant reached a meeting believing the role paid
+       hourly. It is the one answer that decides whether a call happens at
+       all, so it is asked plainly and before anyone's time is spent. */
+    id: 'commission',
+    label: 'This role is commission based — are you open to that?',
+    hint: 'You earn on the appointments and deals you produce. There is no hourly rate or salary.',
+    options: ['Yes', 'No'],
+  },
+  {
     id: 'start',
     label: 'When could you start?',
     options: ['Right away', 'Within 2 weeks', 'Within a month'],
@@ -65,6 +74,19 @@ export const CHOICES: Choice[] = [
     multi: true,
   },
 ];
+
+/* What someone sees after sending. Two of them: an applicant who is not open
+   to commission is told straight away rather than finding out in a meeting. */
+export const OUTCOME = {
+  yes: {
+    heading: 'You\u2019re in.',
+    body: 'We\u2019ll be in touch within 24 hours \u2014 keep your phone close.',
+  },
+  no: {
+    heading: 'Probably not a fit.',
+    body: 'This role pays on commission only, so it sounds like it is not what you are after. Thanks for being straight with us \u2014 we have kept your details in case something else opens up.',
+  },
+};
 
 /** Every field the sheet receives, in column order. */
 export const APPLY_FIELDS = ['name', 'phone', 'email', 'city', ...CHOICES.map((c) => c.id), 'why'];

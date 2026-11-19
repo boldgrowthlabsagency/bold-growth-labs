@@ -13,6 +13,10 @@
   --bold-navy:   #00022E;
   --bold-slate:  #0D1C2A;
   --bold-orange: #E8520A;
+  /* the logo's accent square is lit from above: a highlight and a shade of the
+     brand orange, not new colours. Undefined, its gradient fell back to black. */
+  --bold-orange-lit:  #FF7A33;
+  --bold-orange-deep: #A8380A;
   --bold-white:  #FFFFFF;
   --bold-muted:  #8A94A6;          /* cool grey only — never warm */
 
@@ -1431,7 +1435,7 @@ body {
 .rv-sub { display: block; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.82); }
 
 .rv-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-.rv-chip { display: inline-flex; align-items: center; min-height: 40px;
+.rv-chip { display: inline-flex; align-items: center; min-height: 44px;
   border-radius: 999px; border: 1px solid rgba(255,255,255,.14);
   padding: 0 14px; font-size: 12.5px; color: rgba(255,255,255,.7);
   transition: color .25s ease, border-color .25s ease, background-color .25s ease; }
@@ -1491,3 +1495,45 @@ body {
 .rv-file__x { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
   min-width: 44px; min-height: 44px; color: rgba(255,255,255,.4); transition: color .25s ease; }
 .rv-file__x:hover { color: var(--bold-orange); }
+
+/* ---- /revisions: the guidance around the form ------------------------- */
+
+.rv-step { border-radius: 18px; border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.03); padding: 20px; }
+.rv-step__n { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px;
+  letter-spacing: .2em; color: var(--bold-orange); }
+
+.rv-guide { border-radius: 20px; border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.03); padding: clamp(20px, 3vw, 28px); }
+
+.rv-check { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left;
+  min-height: 48px; padding: 10px 14px; border-radius: 12px; font-size: 13.5px;
+  line-height: 1.5; color: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.02); transition: color .2s, border-color .2s, background .2s; }
+.rv-check:hover { color: #fff; border-color: rgba(255,255,255,.26); }
+.rv-check.is-on { color: rgba(255,255,255,.45); border-color: rgba(var(--orange-rgb), .4); }
+.rv-check__box { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 7px; font-size: 12px; color: #fff;
+  border: 1px solid rgba(255,255,255,.25); }
+.rv-check.is-on .rv-check__box { background: var(--bold-orange); border-color: var(--bold-orange); }
+
+.rv-scope { border-radius: 20px; border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.03); padding: 24px; }
+
+.rv-next__n { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  color: var(--bold-orange); border: 1px solid rgba(var(--orange-rgb), .5); }
+
+.rv-eg { margin-top: 10px; border-radius: 12px; padding: 12px 14px; font-size: 12.5px;
+  line-height: 1.6; color: rgba(255,255,255,.6);
+  border: 1px dashed rgba(255,255,255,.14); background: rgba(255,255,255,.02); }
+.rv-eg__y { color: var(--bold-orange); margin-right: 8px; }
+.rv-eg__n { color: rgba(255,255,255,.3); margin-right: 8px; }
+
+/* the phone-only send bar: the last change can sit a long way above the button */
+.rv-bar { position: sticky; bottom: 12px; z-index: 5; margin-top: 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  border-radius: 999px; padding: 8px 8px 8px 20px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(var(--navy-rgb), .92); backdrop-filter: blur(10px);
+  box-shadow: 0 14px 34px rgba(0,0,0,.45); }
