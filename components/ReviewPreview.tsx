@@ -51,7 +51,7 @@ export default function ReviewPreview() {
         <div className="rp-msg">
           <header className="rp-msg__head">
             <span className="rp-msg__back" aria-hidden>‹</span>
-            <span className="rp-avatar" aria-hidden>CL</span>
+            <span className="rp-avatar" aria-hidden>B</span>
             <span className="rp-msg__who">{SMS_MESSAGE.from}</span>
           </header>
 
@@ -86,7 +86,7 @@ export default function ReviewPreview() {
           <div className="rp-mail__body">
             <h3 className="rp-mail__subject">{EMAIL_MESSAGE.subject}</h3>
             <div className="rp-mail__from">
-              <span className="rp-avatar rp-avatar--mail" aria-hidden>CL</span>
+              <span className="rp-avatar rp-avatar--mail" aria-hidden>B</span>
               <span>
                 <strong>{EMAIL_MESSAGE.from}</strong>
                 <em>{EMAIL_MESSAGE.address}</em>
@@ -124,8 +124,9 @@ export default function ReviewPreview() {
       </Bezel>
 
       <p className="rp-note">
-        {EXAMPLE_BIZ} is an invented business, used here so the messages read the way a
-        real one would. Yours go out in your own name, from your own number and address.
+        {EXAMPLE_BIZ} is our own business, used throughout this page as a worked example —
+        the messages are written the way real ones go out, and the reviews behind them are
+        samples. Yours go out in your own name, from your own number and address.
       </p>
     </div>
   );

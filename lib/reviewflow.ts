@@ -74,14 +74,44 @@ export const FLOW: FlowStep[] = [
 ];
 
 /* ============================================================
+   THE PROFILE IN THE MOCK-UPS
+
+   BOLD Home Solutions is Aldo's own business, used here with his
+   say-so — the "never put a real name on work they did not
+   commission" rule in CLAUDE.md is about other people's names.
+
+   THE RATING AND THE REVIEWS BELOW ARE SAMPLES, and every screen
+   that shows them is captioned as a mock-up on the page. If they
+   are ever swapped for the real profile's numbers, they have to
+   match the profile exactly on the day — a made-up star count
+   under a real business is the same fabrication the service
+   exists to prevent, and it is worse when the business is ours.
+   ============================================================ */
+export const PROFILE = {
+  name: 'BOLD Home Solutions',
+  category: 'General contractor',
+  area: 'San Diego, CA',
+  phone: '(858) 315-7718',
+  site: 'boldhomesolutions.net',
+  hours: 'Open ⋅ Closes 6 PM',
+  /** sample — see the warning above */
+  rating: '4.9',
+  count: '37',
+  /** how the five bars sit in the ratings breakdown, 5★ first */
+  bars: [94, 5, 1, 0, 0],
+};
+
+/* ============================================================
    WHAT THE CUSTOMER ACTUALLY RECEIVES
 
    One source for both the walkthrough's phone and the full-size
    mock-ups, so the text in the little screen and the text in the
    big one can never drift apart.
 
-   Cypress Landscaping is invented, like every other business name
-   on this site, and the page says so under the mock-ups.
+   Everything here is BOLD Home Solutions, Aldo's own business, so
+   the whole page shows one worked example rather than two. The
+   messages are written the way real ones go out; the reviews and
+   the rating behind them are samples, and the page says so.
 
    Two details in here are not decoration:
    · the text carries STOP, because a business sending automated
@@ -92,28 +122,28 @@ export const FLOW: FlowStep[] = [
    looks for.
    ============================================================ */
 
-export const EXAMPLE_BIZ = 'Cypress Landscaping';
+export const EXAMPLE_BIZ = PROFILE.name;
 
 export const SMS_MESSAGE = {
   from: EXAMPLE_BIZ,
   when: 'Today 4:21 PM',
-  body: 'Hi Marisol — Dave here from Cypress Landscaping. Thanks for having us out this week. If you have twenty seconds, would you leave us a quick review?',
-  link: 'g.page/r/cypress-landscaping',
+  body: 'Hi Marisol — Aldo here from BOLD Home Solutions. Thanks for having us out this week. If you have twenty seconds, would you leave us a quick review?',
+  link: 'g.page/r/bold-home-solutions',
   optOut: 'Reply STOP to opt out.',
   /** the customer's own reply, shown so the thread reads like a real one */
-  reply: 'Just did — wall looks great 👍',
+  reply: 'Just did — kitchen looks great 👍',
 };
 
 export const EMAIL_MESSAGE = {
   from: EXAMPLE_BIZ,
-  address: 'hello@cypresslandscaping.com',
+  address: 'hello@boldhomesolutions.net',
   when: '8:02 AM',
   subject: 'How did we do, Marisol?',
   greeting: 'Hi Marisol,',
-  body: 'Thanks again for having us out to 14 Cypress Lane. We are a small local crew, and reviews are genuinely how people find us.',
+  body: 'Thanks again for having us out to the kitchen remodel. We are a small local crew, and reviews are genuinely how people find us.',
   ask: 'Would you mind leaving one? It takes about twenty seconds.',
   button: 'Leave a review',
-  signoff: 'Dave\u2019s crew at Cypress Landscaping',
+  signoff: 'Aldo and the crew at BOLD Home Solutions',
   unsubscribe: 'Unsubscribe',
 };
 
@@ -124,12 +154,15 @@ export const SAMPLE_REVIEWS = [
   { name: 'Marisol R.', stars: 5, when: '2 days ago',
     text: 'Crew showed up when they said they would and cleaned up every night. The quote never moved.' },
   { name: 'Dan W.', stars: 5, when: '1 week ago',
-    text: 'Straight answers, no pressure, and they caught a drainage problem the last two guys missed.' },
+    text: 'Straight answers, no pressure, and they caught a rot problem under the sink the last two guys missed.' },
   { name: 'Priya N.', stars: 5, when: '2 weeks ago',
     text: 'Booked Monday, done Thursday. Sent photos every day since I was out of town.' },
   { name: 'Kev T.', stars: 4, when: '3 weeks ago',
     text: 'Ran a day over because of rain, but they told me before I had to ask. Work is solid.' },
 ];
 
-export const SAMPLE_RATING = 4.9;
-export const SAMPLE_COUNT = 127;
+/* One business across the whole page means one rating and one count — the
+   widget and the profile mock-up read the same two numbers, or a prospect
+   sees 127 reviews in one screen and 37 in the next. */
+export const SAMPLE_RATING = PROFILE.rating;
+export const SAMPLE_COUNT = PROFILE.count;

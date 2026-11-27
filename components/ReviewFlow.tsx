@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FLOW, SAMPLE_REVIEWS, SAMPLE_RATING, SAMPLE_COUNT, SMS_MESSAGE, EMAIL_MESSAGE } from '@/lib/reviewflow';
+import { FLOW, SAMPLE_REVIEWS, SAMPLE_RATING, SAMPLE_COUNT, SMS_MESSAGE, EMAIL_MESSAGE, PROFILE } from '@/lib/reviewflow';
 
 /* ============================================================
    REVIEWS — an interactive walkthrough, not a list of bullets
@@ -22,6 +22,16 @@ export default function ReviewFlow() {
   const [i, setI] = useState(0);
   const [auto, setAuto] = useState(true);
   const wrap = useRef<HTMLDivElement>(null);
+
+  /* #step-4 opens on that step and holds it. Lets a link point at one part of
+     the flow — "here is the bit you asked about" — instead of at the top of a
+     page that is already moving. */
+  useEffect(() => {
+    const m = /^#step-(\d+)$/.exec(window.location.hash);
+    if (!m) return;
+    const k = Number(m[1]) - 1;
+    if (k >= 0 && k < FLOW.length) { setI(k); setAuto(false); }
+  }, []);
 
   /* Only run while on screen — and never at all under reduced motion, where
      the visitor drives it entirely. */
@@ -109,8 +119,8 @@ function Screen({ kind }: { kind: string }) {
       <div className="rf-scr rf-scr--app">
         <p className="rf-scr__bar">Your job software</p>
         <div className="rf-job">
-          <p className="rf-job__t">Patio &amp; retaining wall</p>
-          <p className="rf-job__m">14 Cypress Lane &middot; 3 days</p>
+          <p className="rf-job__t">Kitchen remodel</p>
+          <p className="rf-job__m">Chula Vista &middot; 9 days</p>
           <span className="rf-job__done">✓ Marked complete</span>
         </div>
         <p className="rf-scr__hint">That is your entire involvement.</p>
@@ -147,17 +157,31 @@ function Screen({ kind }: { kind: string }) {
   }
 
   if (kind === 'google') {
+    /* Google's own review sheet: white card, Product Sans-ish heading, the
+       account row that tells you the review is public, and the blue Post
+       button. The grey stars filling gold is the whole interaction. */
     return (
       <div className="rf-scr rf-scr--g">
-        <p className="rf-scr__bar">Rate your experience</p>
+        <p className="rf-scr__bar">google.com</p>
         <div className="rf-gbox">
           <div className="rf-gbox__biz">
-            <span className="rf-gbox__logo" />
-            <span>Your Business</span>
+            <span className="rf-gbox__logo" aria-hidden>B</span>
+            <span>
+              <strong>{PROFILE.name}</strong>
+              <em>{PROFILE.category}</em>
+            </span>
           </div>
+          <p className="rf-gbox__h">Rate your experience</p>
           <Stars n={5} className="rf-stars--lg" />
-          <div className="rf-gbox__field">Share details of your experience…</div>
-          <span className="rf-gbox__btn">Post</span>
+          <p className="rf-gbox__acct">
+            <span className="rf-gbox__ava" aria-hidden>M</span>
+            Posting publicly as Marisol R.
+          </p>
+          <div className="rf-gbox__field">Share details of your own experience at this place</div>
+          <div className="rf-gbox__foot">
+            <span className="rf-gbox__cancel">Cancel</span>
+            <span className="rf-gbox__btn">Post</span>
+          </div>
         </div>
         <p className="rf-scr__hint">One tap from the text. No app, no account hunt.</p>
       </div>
@@ -165,19 +189,61 @@ function Screen({ kind }: { kind: string }) {
   }
 
   if (kind === 'landed') {
+    /* The profile itself, the way it looks on a phone: photo strip, the
+       rating row people actually scan, the action buttons, then the reviews
+       with the new one at the top. */
     return (
       <div className="rf-scr rf-scr--landed">
-        <p className="rf-scr__bar">Your Google profile</p>
-        <div className="rf-rating">
-          <strong>{SAMPLE_RATING}</strong>
-          <Stars n={5} />
-          <span>{SAMPLE_COUNT} reviews</span>
-        </div>
-        <div className="rf-rev rf-rev--new">
-          <span className="rf-rev__badge">New</span>
-          <Stars n={5} />
-          <p>{SAMPLE_REVIEWS[0].text}</p>
-          <span className="rf-rev__by">{SAMPLE_REVIEWS[0].name} &middot; just now</span>
+        <p className="rf-scr__bar">Google</p>
+        <div className="rf-gbp">
+          <div className="rf-gbp__hero" aria-hidden>
+            <span /><span /><span />
+          </div>
+          <div className="rf-gbp__body">
+            <p className="rf-gbp__name">{PROFILE.name}</p>
+            <p className="rf-gbp__score">
+              <strong>{PROFILE.rating}</strong>
+              <Stars n={5} />
+              <span>({PROFILE.count})</span>
+            </p>
+            <p className="rf-gbp__meta">{PROFILE.category} · {PROFILE.area}</p>
+            <p className="rf-gbp__open">{PROFILE.hours}</p>
+
+            <div className="rf-gbp__acts" aria-hidden>
+              {['Call', 'Directions', 'Website', 'Save'].map((a) => (
+                <span key={a} className="rf-gbp__act">{a}</span>
+              ))}
+            </div>
+
+            <div className="rf-gbp__tabs" aria-hidden>
+              <span>Overview</span><span className="is-on">Reviews</span><span>Photos</span>
+            </div>
+
+            <div className="rf-gbp__bars" aria-hidden>
+              <strong>{PROFILE.rating}</strong>
+              <span className="rf-gbp__barset">
+                {PROFILE.bars.map((w, k) => (
+                  <span key={k} className="rf-gbp__bar"><i style={{ width: `${w}%` }} /></span>
+                ))}
+              </span>
+            </div>
+
+            <div className="rf-gbp__rev is-new">
+              <span className="rf-gbp__ava" aria-hidden>M</span>
+              <span className="rf-gbp__revbody">
+                <strong>{SAMPLE_REVIEWS[0].name}</strong>
+                <span className="rf-gbp__revmeta"><Stars n={5} /> just now</span>
+                <span className="rf-gbp__revtext">{SAMPLE_REVIEWS[0].text}</span>
+              </span>
+            </div>
+            <div className="rf-gbp__rev">
+              <span className="rf-gbp__ava rf-gbp__ava--2" aria-hidden>D</span>
+              <span className="rf-gbp__revbody">
+                <strong>{SAMPLE_REVIEWS[1].name}</strong>
+                <span className="rf-gbp__revmeta"><Stars n={5} /> {SAMPLE_REVIEWS[1].when}</span>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     );

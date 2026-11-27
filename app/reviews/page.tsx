@@ -60,6 +60,14 @@ export default function ReviewsPage() {
 
         <ReviewFlow />
 
+        {/* Our own profile is on these screens, so the sample data has to be
+            labelled. A real name over invented numbers is the fabrication this
+            service exists to prevent — ours included. */}
+        <p className="mt-6 max-w-[760px] text-[12px] leading-relaxed text-white/35">
+          The Google screens show BOLD Home Solutions, our own business, as a worked
+          example. The rating and reviews on them are samples for this walkthrough.
+        </p>
+
         {/* ---- the two messages, at a size you can read across a table ---- */}
         <section className="mt-24">
           <div className="max-w-[760px]">
