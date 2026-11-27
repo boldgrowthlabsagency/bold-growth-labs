@@ -1537,3 +1537,105 @@ body {
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(var(--navy-rgb), .92); backdrop-filter: blur(10px);
   box-shadow: 0 14px 34px rgba(0,0,0,.45); }
+
+/* ---- /reviews: the two phones a customer actually sees ---------------- */
+
+.rp-pair { display: grid; gap: clamp(28px, 5vw, 56px); justify-items: center;
+  grid-template-columns: 1fr; }
+@media (min-width: 820px) { .rp-pair { grid-template-columns: 1fr 1fr; align-items: start; } }
+
+.rp-fig { margin: 0; width: 100%; max-width: 330px; }
+
+/* the bezel. A real device is darker than the page and catches one highlight
+   along the top edge — without that it reads as a grey rectangle. */
+.rp-phone { position: relative; border-radius: 46px; padding: 11px;
+  background: linear-gradient(170deg, #3a3f49 0%, #15181f 32%, #0b0d12 100%);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 26px 60px rgba(0,0,0,.55),
+              inset 0 1px 0 rgba(255,255,255,.22); }
+.rp-phone__screen { position: relative; overflow: hidden; border-radius: 36px;
+  background: #fff; color: #0b0d12; aspect-ratio: 9 / 19.5;
+  display: flex; flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; }
+
+.rp-status { position: relative; flex-shrink: 0; display: flex; align-items: center;
+  justify-content: space-between; padding: 11px 20px 4px; font-size: 12px; font-weight: 600; }
+.rp-status__time { letter-spacing: -.01em; }
+.rp-island { position: absolute; left: 50%; top: 7px; transform: translateX(-50%);
+  width: 78px; height: 23px; border-radius: 999px; background: #0b0d12; }
+.rp-status__icons { display: inline-flex; align-items: center; gap: 5px; }
+.rp-status__icons svg { height: 10px; fill: #0b0d12; }
+.rp-sig { width: 15px; } .rp-wifi { width: 13px; }
+.rp-batt { position: relative; display: inline-block; width: 22px; height: 11px;
+  border-radius: 3px; border: 1px solid rgba(0,0,0,.35); }
+.rp-batt i { position: absolute; inset: 1.5px; width: 62%; border-radius: 1.5px; background: #0b0d12; }
+
+/* ---- messages ---- */
+.rp-msg { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.rp-msg__head { flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px 10px; border-bottom: 1px solid rgba(0,0,0,.08);
+  background: rgba(246,246,248,.92); }
+.rp-msg__back { font-size: 22px; line-height: 1; color: #0a84ff; }
+.rp-avatar { display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 999px; font-size: 10px; font-weight: 700;
+  color: #fff; background: linear-gradient(160deg, #8e8e93, #5c5c61); }
+.rp-msg__who { font-size: 13px; font-weight: 600; }
+
+.rp-thread { flex: 1; display: flex; flex-direction: column; gap: 8px;
+  padding: 14px 12px; overflow: hidden; }
+.rp-when { text-align: center; font-size: 10.5px; color: rgba(0,0,0,.42); }
+.rp-read { margin-top: -2px; text-align: right; font-size: 10px; color: rgba(0,0,0,.4); }
+
+.rp-bub { max-width: 84%; border-radius: 19px; padding: 10px 14px;
+  font-size: 13.5px; line-height: 1.42; }
+.rp-bub--in { align-self: flex-start; background: #e9e9eb; color: #0b0d12;
+  border-bottom-left-radius: 6px; }
+.rp-bub--out { align-self: flex-end; background: #34c759; color: #fff;
+  border-bottom-right-radius: 6px; }
+.rp-bub__link { display: block; margin-top: 7px; color: #0a84ff; text-decoration: underline;
+  word-break: break-all; }
+.rp-bub__fine { display: block; margin-top: 7px; font-size: 11px; color: rgba(0,0,0,.45); }
+
+.rp-bar { flex-shrink: 0; padding: 8px 12px 16px; border-top: 1px solid rgba(0,0,0,.07); }
+.rp-bar__field { display: block; border-radius: 999px; padding: 7px 14px; font-size: 12.5px;
+  color: rgba(0,0,0,.35); border: 1px solid rgba(0,0,0,.14); }
+
+/* ---- mail ---- */
+.rp-mail { display: flex; flex-direction: column; flex: 1; min-height: 0; background: #f2f2f7; }
+.rp-mail__head { flex-shrink: 0; display: flex; align-items: center; gap: 4px;
+  padding: 8px 14px 10px; background: rgba(246,246,248,.92);
+  border-bottom: 1px solid rgba(0,0,0,.08); }
+.rp-mail__box { font-size: 13px; color: #0a84ff; }
+.rp-mail__body { flex: 1; overflow: hidden; padding: 14px 14px 0; background: #fff; }
+.rp-mail__subject { font-size: 17px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; }
+.rp-mail__from { display: flex; align-items: center; gap: 8px; margin: 10px 0 12px;
+  padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,.08); font-size: 11.5px; }
+.rp-avatar--mail { background: linear-gradient(160deg, #e8520a, #a8380a); }
+.rp-mail__from strong { display: block; font-size: 12.5px; }
+.rp-mail__from em { font-style: normal; color: rgba(0,0,0,.45); }
+.rp-mail__time { margin-left: auto; color: rgba(0,0,0,.4); }
+
+.rp-mail__sheet { font-size: 13px; line-height: 1.5; color: rgba(0,0,0,.78); }
+.rp-mail__sheet p + p { margin-top: 9px; }
+.rp-mail__hi { font-weight: 600; color: #0b0d12; }
+.rp-mail__stars { display: flex; gap: 3px; margin: 14px 0 12px; }
+.rp-mail__stars svg { width: 22px; height: 22px; fill: #f5a623; }
+.rp-mail__btn { display: inline-block; border-radius: 999px; padding: 11px 22px;
+  font-size: 13px; font-weight: 700; color: #fff; background: var(--bold-orange); }
+.rp-mail__sign { margin-top: 14px; color: rgba(0,0,0,.55); }
+.rp-mail__unsub { margin-top: 12px; font-size: 10.5px; color: rgba(0,0,0,.38);
+  text-decoration: underline; }
+
+.rp-cap { margin-top: 16px; text-align: center; font-size: 12.5px; line-height: 1.55;
+  color: rgba(255,255,255,.5); }
+.rp-note { grid-column: 1 / -1; max-width: 62ch; text-align: center;
+  font-size: 12px; line-height: 1.6; color: rgba(255,255,255,.35); }
+.rf-bubble__from { display: block; margin: 4px 0 10px; font-size: 11.5px;
+  color: rgba(255,255,255,.45); }
+.rf-bubble__cta { display: inline-block; margin-top: 12px; border-radius: 999px;
+  padding: 8px 16px; font-size: 12px; font-weight: 700; color: #fff;
+  background: var(--bold-orange); }
+.rp-mail__tools { flex-shrink: 0; display: flex; align-items: center;
+  justify-content: space-around; padding: 12px 22px 18px;
+  background: rgba(246,246,248,.94); border-top: 1px solid rgba(0,0,0,.08); }
+.rp-mail__tools svg { width: 17px; height: 17px; fill: none; stroke: #0a84ff;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }

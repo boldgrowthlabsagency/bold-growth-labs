@@ -13,6 +13,71 @@
  * environment variable and never reaches the browser.
  */
 
+/* ============================================================
+   CLIENT SITES — an enquiry on a site we built, delivered to the
+   client who owns it.
+
+   Every build used to end at a `mailto:` fallback, which only works
+   if the visitor finishes the job in their own mail app. Most do
+   not, so the enquiry was never sent at all and the owner never
+   knew there had been one.
+
+   THE ADDRESS IS LOOKED UP HERE, NEVER READ FROM THE REQUEST. This
+   Web App URL is unauthenticated by design, so a `to` field in the
+   payload would make it a free relay for anyone who found the URL.
+   A site posts a short key it was given; an unknown key is recorded
+   and mails nobody.
+
+   To add a client: one line below, then redeploy (Deploy ▸ Manage
+   deployments ▸ pencil ▸ New version). `to` empty means we have not
+   been given their inbox yet — the enquiry still lands in the sheet
+   and comes to us, so nothing is lost while that is sorted out.
+   ============================================================ */
+var SITES = {
+  campos: { name: 'Campos Roofing', to: '', copyToUs: true },
+  /* Live since 19 Nov 2026 — tested end to end from the deployed site with two
+     phone-sized photos, which arrived attached. Enquiries go to Sergio and we
+     are copied; he is told on the revisions page to test the form himself. */
+  torres: {
+    name: 'Torres Custom Painting',
+    to: 'tcpaintingca@gmail.com',
+    copyToUs: true,
+    /* The notification wears the client's own branding, not ours: it is their
+       lead, arriving on their letterhead. `logo` is fetched at send time and
+       embedded, so it shows without Gmail's "display images" prompt; if the
+       fetch fails the email still goes, with the name set in the brand colour
+       instead. `ink` is the header, `accent` the rules and the phone number. */
+    brand: {
+      ink: '#16161A',
+      accent: '#6E1519',
+      paper: '#F6F3EE',
+      logo: 'https://torres-custom-painting-sd.netlify.app/logo-email.png',
+      phone: '(619) 471-7748',
+    },
+  },
+};
+
+/* One tab per client, so a client's leads are never mixed together.
+   `photos` holds the file names only — the photos themselves are attached to
+   the owner's email, where they are actually useful. A spreadsheet cell is a
+   poor place to keep an 8MB picture of someone's fascia board. */
+var SITE_COLUMNS = [
+  ['receivedAt', 'Received'],
+  ['name',       'Name'],
+  ['email',      'Email'],
+  ['phone',      'Phone'],
+  ['address',    'Address'],
+  ['service',    'Service'],
+  ['details',    'Details'],
+  ['photos',     'Photos'],
+  ['source',     'Source'],
+];
+
+/* Gmail refuses a message over 25MB and counts the base64 encoding, not the
+   file. Stay well under: the enquiry must arrive even if the photos cannot,
+   so anything past the budget is named in the email instead of attached. */
+var SITE_ATTACH_BUDGET = 18 * 1024 * 1024;
+
 /* Where the notification goes. Change this if you move off Gmail. */
 var NOTIFY = 'boldgrowthlabs@gmail.com';
 
@@ -242,6 +307,7 @@ function doPost(e) {
     if (data.form === 'hiring') return handleHiring(data);
     if (data.form === 'audit') return handleAudit(data);
     if (data.form === 'blackfriday') return handleBlackFriday(data);
+    if (data.form === 'site') return handleSite(data);
 
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
 
@@ -289,6 +355,222 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/* An enquiry on a client's own website. */
+function handleSite(data) {
+  var key = String(data.site || '').toLowerCase().trim();
+  var site = SITES[key];
+
+  /* Unknown key: keep the enquiry, tell nobody it exists by email. Someone
+     poking the URL should not be able to make it send mail. */
+  if (!site) {
+    var strays = tabFor('Unrouted site enquiries', SITE_COLUMNS);
+    strays.appendRow(SITE_COLUMNS.map(function (c) { return data[c[0]] || ''; }));
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, reason: 'unknown_site' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  /* Photos come through base64-encoded in the payload. Decode them into
+     attachments, newest-first order preserved, stopping at the budget so a
+     heavy submission still sends. A photo that cannot be decoded is skipped,
+     never fatal — the enquiry matters more than the picture. */
+  var attachments = [];
+  var attachedNames = [];
+  var skippedNames = [];
+  var used = 0;
+  var photos = data.photos && data.photos.length ? data.photos : [];
+  for (var i = 0; i < photos.length; i++) {
+    var p = photos[i] || {};
+    var pname = p.name || ('photo-' + (i + 1) + '.jpg');
+    try {
+      var bytes = Utilities.base64Decode(p.data);
+      if (used + bytes.length > SITE_ATTACH_BUDGET) {
+        skippedNames.push(pname);
+        continue;
+      }
+      attachments.push(Utilities.newBlob(bytes, p.type || 'image/jpeg', pname));
+      attachedNames.push(pname);
+      used += bytes.length;
+    } catch (decodeErr) {
+      skippedNames.push(pname);
+      console.error('photo skipped (' + pname + '): ' + decodeErr);
+    }
+  }
+
+  data.photos = attachedNames.concat(skippedNames).join(', ');
+
+  /* The timestamp arrives as UTC ISO ("2026-11-19T21:04:11.123Z"), which is
+     both unreadable and several hours wrong to anyone reading it in San Diego.
+     Shown in the spreadsheet's own timezone instead — a tradesman glancing at
+     his phone should see "Thu 19 Nov, 1:04 PM". */
+  var stamp = String(data.receivedAt || '');
+  var when = new Date(data.receivedAt);
+  if (data.receivedAt && !isNaN(when.getTime())) {
+    stamp = Utilities.formatDate(when, Session.getScriptTimeZone(), 'EEE d MMM yyyy, h:mm a');
+    /* The sheet gets the Date itself, not the pretty string: a real datetime
+       sorts and filters, "Thu 19 Nov" sorts alphabetically and is useless. */
+    data.receivedAt = when;
+  }
+
+  var sheet = tabFor(site.name + ' enquiries', SITE_COLUMNS);
+  sheet.appendRow(SITE_COLUMNS.map(function (c) { return data[c[0]] || ''; }));
+
+  var photoLine = attachments.length
+    ? attachments.length + (attachments.length === 1 ? ' photo is attached.' : ' photos are attached.')
+    : 'No photos were sent with this one.';
+  if (skippedNames.length) {
+    photoLine += ' ' + skippedNames.length + ' more would not fit in an email ('
+      + skippedNames.join(', ') + ') — ask them to text those over.';
+  }
+  if (data.photosDropped) {
+    photoLine += ' ' + data.photosDropped + ' were too large to send from the website.';
+  }
+
+  var body = [
+    'You have a new enquiry from your website.',
+    '',
+    'Name:    ' + (data.name || '—'),
+    'Email:   ' + (data.email || '—'),
+    'Phone:   ' + (data.phone || '—'),
+    'Address: ' + (data.address || '—'),
+    'Service: ' + (data.service || '—'),
+    '',
+    (data.details || '(no details given)'),
+    '',
+    photoLine,
+    '',
+    'They were told on the website that you would be in touch the same day.',
+    '',
+    'Hit reply to answer them directly.',
+    '',
+    '— sent by your website · ' + stamp,
+  ].join('\n');
+
+  /* ---- The same email, on the client's own letterhead ----------------
+     Built with tables and inline styles because that is what mail clients
+     still render. Everything a visitor typed goes through esc() first: a
+     name containing "<" would otherwise break the layout, and anything
+     worse than that is a stranger writing HTML into an email we send. */
+  var brand = site.brand || {};
+  var ink = brand.ink || '#16161A';
+  var accent = brand.accent || '#6E1519';
+  var paper = brand.paper || '#F6F3EE';
+
+  function esc(v) {
+    return String(v === undefined || v === null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function row(label, value, link) {
+    var shown = value ? esc(value) : '—';
+    if (value && link) shown = '<a href="' + link + esc(value) + '" style="color:' + accent + ';text-decoration:none">' + shown + '</a>';
+    return '<tr>'
+      + '<td style="padding:7px 16px 7px 0;font:600 11px/1.4 Arial,Helvetica,sans-serif;'
+      + 'letter-spacing:.09em;text-transform:uppercase;color:#6b6760;white-space:nowrap;vertical-align:top">' + label + '</td>'
+      + '<td style="padding:7px 0;font:400 16px/1.5 Arial,Helvetica,sans-serif;color:' + ink + '">' + shown + '</td>'
+      + '</tr>';
+  }
+
+  /* The logo is embedded rather than linked, so it shows before anyone
+     clicks "display images". A failed fetch must never cost us the email. */
+  var inlineImages = {};
+  var masthead = '<div style="font:700 20px/1.2 Arial,Helvetica,sans-serif;color:' + paper + '">'
+    + esc(site.name) + '</div>';
+  if (brand.logo) {
+    try {
+      inlineImages.sitelogo = UrlFetchApp.fetch(brand.logo, { muteHttpExceptions: true }).getBlob().setName('logo');
+      masthead = '<img src="cid:sitelogo" width="176" alt="' + esc(site.name)
+        + '" style="display:block;border:0;width:176px;height:auto">';
+    } catch (logoErr) {
+      console.error('logo not embedded, falling back to the wordmark: ' + logoErr);
+    }
+  }
+
+  var htmlBody =
+    '<div style="margin:0;padding:24px 12px;background:' + paper + '">'
+    + '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #e4ded4">'
+    + '<tr><td style="padding:22px 28px;background:' + ink + '">' + masthead + '</td></tr>'
+    + '<tr><td style="height:4px;background:' + accent + '"></td></tr>'
+    + '<tr><td style="padding:30px 28px 8px">'
+    + '<div style="font:700 11px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:' + accent + '">New estimate request</div>'
+    + '<div style="margin-top:8px;font:700 25px/1.25 Georgia,\'Times New Roman\',serif;color:' + ink + '">'
+    + esc(data.name || 'Someone') + ' asked for a free estimate.</div>'
+    + '</td></tr>'
+    + '<tr><td style="padding:14px 28px 0">'
+    + '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">'
+    + row('Phone', data.phone, 'tel:')
+    + row('Email', data.email, 'mailto:')
+    + row('Address', data.address)
+    + row('Job', data.service)
+    + '</table></td></tr>'
+    + '<tr><td style="padding:22px 28px 0">'
+    + '<div style="font:600 11px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#6b6760">What they said</div>'
+    + '<div style="margin-top:8px;padding:16px 18px;background:' + paper + ';border-left:3px solid ' + accent + ';'
+    + 'font:400 16px/1.6 Arial,Helvetica,sans-serif;color:' + ink + '">'
+    + (data.details ? esc(data.details).replace(/\n/g, '<br>') : '<span style="color:#6b6760">They did not add any details.</span>')
+    + '</div></td></tr>'
+    + '<tr><td style="padding:18px 28px 0;font:400 14px/1.55 Arial,Helvetica,sans-serif;color:#4a463f">'
+    + esc(photoLine) + '</td></tr>'
+    + '<tr><td style="padding:22px 28px 0">'
+    + '<div style="padding:14px 18px;background:' + accent + ';color:#ffffff;font:600 15px/1.5 Arial,Helvetica,sans-serif">'
+    + 'They were told on your website that you would be in touch the same day.</div></td></tr>'
+    + '<tr><td style="padding:20px 28px 30px;font:400 14px/1.6 Arial,Helvetica,sans-serif;color:#4a463f">'
+    + 'Hit reply and it goes straight to them'
+    + (data.email ? ' at ' + esc(data.email) : '')
+    + (data.phone ? ', or call <a href="tel:' + esc(data.phone) + '" style="color:' + accent + ';text-decoration:none;font-weight:700">' + esc(data.phone) + '</a>' : '')
+    + '.</td></tr>'
+    + '<tr><td style="padding:14px 28px;border-top:1px solid #e4ded4;background:#fbfaf7;'
+    + 'font:400 12px/1.5 Arial,Helvetica,sans-serif;color:#86807a">'
+    + 'Sent by your website · ' + esc(stamp) + '</td></tr>'
+    + '</table></div>';
+
+  /* The client is the recipient; we are only copied. Their reply goes to the
+     person who enquired, not to us, so hitting reply does the right thing. */
+  try {
+    MailApp.sendEmail({
+      to: site.to || NOTIFY,
+      /* The sender's display name. Without it the owner sees a bare
+         @gmail.com address claiming to be their website, with a reply-to
+         pointing at a third address — which is the shape of a phishing
+         email, and is how the first Torres enquiry from the live domain
+         landed in Sergio's spam on 27 Nov 2026. A name is not
+         authentication and does not fix that shape; the real fix is sending
+         from the client's own domain with SPF and DKIM. This makes it
+         recognisable and filterable in the meantime. */
+      name: site.name ? site.name + ' Website' : 'Website enquiry',
+      /* BCC, not CC. Our copy is support plumbing — it proves what the site
+         delivered and when, the day a client says a lead never arrived — and
+         it has no business appearing in the header of an email the owner may
+         forward to the customer. The client is TOLD the copy exists, in
+         writing, when the site is handed over: invisible is fine, undisclosed
+         is not. `copyToUs: false` turns it off for a client who would rather
+         we kept nothing. */
+      bcc: site.to && site.copyToUs ? NOTIFY : '',
+      /* The service in the subject: it is read on a phone, between jobs, in a
+         list of other notifications. "Exterior painting" there is worth more
+         than it is three lines into the body. */
+      subject: 'New enquiry from your website — ' + (data.name || 'someone')
+        + (data.service ? ' (' + data.service + ')' : ''),
+      replyTo: data.email || NOTIFY,
+      body: site.to
+        ? body
+        : 'NO CLIENT ADDRESS SET for "' + key + '" — add it to SITES in the script.\n\n' + body,
+      htmlBody: site.to
+        ? htmlBody
+        : '<p style="font:700 14px Arial,sans-serif;color:#b00">NO CLIENT ADDRESS SET for "'
+          + key + '" — add it to SITES in the script.</p>' + htmlBody,
+      inlineImages: inlineImages,
+      attachments: attachments,
+    });
+  } catch (mailErr) {
+    console.error('enquiry saved, notification failed: ' + mailErr);
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ ok: true }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function handleIntake(data) {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Logo from '@/components/Logo';
 import MagneticButton from '@/components/MagneticButton';
 import ReviewFlow, { ReviewWidget } from '@/components/ReviewFlow';
+import ReviewPreview from '@/components/ReviewPreview';
 import { PHONE, PHONE_DISPLAY } from '@/lib/data';
 
 /* ============================================================
@@ -51,12 +52,29 @@ export default function ReviewsPage() {
             From a finished job to <span className="text-orange">a review on your site.</span>
           </h1>
           <p className="lede mt-6">
-            Six steps. You do the first one. Here is exactly what happens after that —
+            Every customer gets a text, and an email the next morning if they have not
+            reviewed yet. You do the first step. Here is exactly what happens after that —
             press any step to jump to it.
           </p>
         </header>
 
         <ReviewFlow />
+
+        {/* ---- the two messages, at a size you can read across a table ---- */}
+        <section className="mt-24">
+          <div className="max-w-[760px]">
+            <p className="eyebrow mb-5">What your customer gets</p>
+            <h2 className="display max-w-[17ch]">
+              Two messages. <span className="text-orange">Both in your name.</span>
+            </h2>
+            <p className="lede mt-5 mb-12">
+              Asking once gets you the people who answer texts. Asking twice, politely, on two
+              different channels, gets you the rest — and anyone who leaves a review drops out
+              of the sequence straight away.
+            </p>
+          </div>
+          <ReviewPreview />
+        </section>
 
         {/* ---- the widget, full size ---- */}
         <section className="mt-24 max-w-[980px]">
@@ -86,6 +104,12 @@ export default function ReviewsPage() {
             <li>
               <strong className="text-white">Offer anything in exchange.</strong> No discounts,
               no draws, no free upgrades. Incentivised reviews are against Google&rsquo;s terms.
+            </li>
+            <li>
+              <strong className="text-white">Message anyone who has opted out.</strong> Every
+              text carries STOP and every email carries an unsubscribe link, because automated
+              messages without them break carrier rules, the TCPA and CAN-SPAM. One tap and
+              that customer is never contacted again.
             </li>
             <li>
               <strong className="text-white">Write reviews.</strong> Not ever, not from any

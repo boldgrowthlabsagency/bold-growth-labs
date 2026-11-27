@@ -92,7 +92,7 @@ export const HOW_IT_WORKS = [
 export const CHECKLIST = [
   { id: 'name', t: 'Business name spelled exactly the way you use it' },
   { id: 'phone', t: 'Phone number — tap it on your phone and check it dials you' },
-  { id: 'form', t: 'Send the contact form to yourself and make sure it arrives' },
+  { id: 'form', t: 'Send a test message through the contact form — tell us if it does not reach your inbox' },
   { id: 'hours', t: 'Address, service area and opening hours' },
   { id: 'services', t: 'Services list — nothing missing, nothing you no longer do' },
   { id: 'claims', t: 'Prices, offers, guarantees and licence numbers you can stand behind' },

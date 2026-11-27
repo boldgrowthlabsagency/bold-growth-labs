@@ -119,3 +119,46 @@ Editing the code alone does nothing until you redeploy a new version.
 
 **Extra fields** — add to `COLUMNS` in the script *and* to `FIELDS` in
 `app/api/contact/route.ts`, or the value is dropped before it reaches Google.
+
+---
+
+## Client sites: an enquiry on a site we built
+
+A finished client site posts its own form to **`boldgrowthlabs.io/api/site`**,
+which forwards to the same Apps Script:
+
+```
+their visitor  →  their site  →  boldgrowthlabs.io/api/site  →  Apps Script  →  the CLIENT's inbox
+   (photos)        (resized)         (your server)                              + their own tab in your Sheet
+                                                                                + a copy to you
+```
+
+What is different from the main contact form:
+
+- **The client is the recipient, you are copied.** `replyTo` is the person who
+  enquired, so the owner hits reply and answers them, not us.
+- **The address is never in the request.** The site posts a short key
+  (`torres`); the address it maps to lives in `SITES` in the script. A `to`
+  field in the payload would make the Web App an open relay for anyone who
+  found the URL.
+- **Photos are attached to the email.** The visitor's phone resizes each one to
+  roughly 250KB before it is sent (`PHOTO` in the client build), the route caps
+  the total, and the script attaches them up to `SITE_ATTACH_BUDGET` — 18MB,
+  under Gmail's 25MB ceiling. Anything over the budget is named in the email
+  instead, so the owner knows to ask for it. The sheet stores the file names
+  only; a spreadsheet is a bad place to keep photographs.
+- **Each client gets their own tab**, `<Client name> enquiries`. An unknown key
+  lands in `Unrouted site enquiries` and emails nobody.
+
+### Adding a client site
+
+1. `SITES` in `docs/google-sheet-script.gs` — one line: key, name, their
+   address, `copyToUs`. Leave `to` empty until a test has come through; the
+   enquiry then reaches you with a banner saying the address is missing.
+2. `SITES` **and** `ORIGINS` in `app/api/site/route.ts` — the key, and the
+   exact origin their site is served from. A new domain means a new origin, or
+   enquiries start failing the day the domain changes.
+3. Redeploy both: **Deploy ▸ Manage deployments ▸ edit ▸ New version** for the
+   script, `npx vercel --prod --yes` for the route.
+4. Test from the client's site before handing it over, while `to` is still
+   empty, then fill the address in and redeploy the script.

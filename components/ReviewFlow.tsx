@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FLOW, SAMPLE_REVIEWS, SAMPLE_RATING, SAMPLE_COUNT } from '@/lib/reviewflow';
+import { FLOW, SAMPLE_REVIEWS, SAMPLE_RATING, SAMPLE_COUNT, SMS_MESSAGE, EMAIL_MESSAGE } from '@/lib/reviewflow';
 
 /* ============================================================
    REVIEWS — an interactive walkthrough, not a list of bullets
@@ -123,11 +123,25 @@ function Screen({ kind }: { kind: string }) {
       <div className="rf-scr rf-scr--sms">
         <p className="rf-scr__bar">Messages &middot; now</p>
         <div className="rf-bubble">
-          Hi Marisol — thanks for having us out this week. If you have twenty seconds,
-          would you mind leaving us a quick review? It genuinely helps.
-          <span className="rf-bubble__link">g.page/r/review</span>
+          {SMS_MESSAGE.body}
+          <span className="rf-bubble__link">{SMS_MESSAGE.link}</span>
         </div>
         <p className="rf-scr__hint">Sent 20 minutes after the job closed.</p>
+      </div>
+    );
+  }
+
+  if (kind === 'email') {
+    return (
+      <div className="rf-scr rf-scr--sms">
+        <p className="rf-scr__bar">Mail &middot; {EMAIL_MESSAGE.when}</p>
+        <div className="rf-bubble">
+          <strong>{EMAIL_MESSAGE.subject}</strong>
+          <span className="rf-bubble__from">{EMAIL_MESSAGE.from}</span>
+          {EMAIL_MESSAGE.ask}
+          <span className="rf-bubble__cta">{EMAIL_MESSAGE.button}</span>
+        </div>
+        <p className="rf-scr__hint">Next morning — and only if no review has landed.</p>
       </div>
     );
   }

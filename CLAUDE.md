@@ -154,6 +154,16 @@ Adding a field means adding it to `FIELDS` here *and* to `COLUMNS` in
 Script changes only take effect after **Deploy ▸ Manage deployments ▸ New
 version** — editing the script alone does nothing.
 
+The same script also delivers enquiries made on **a client's own site**
+(`form: 'site'` → `handleSite`): a row in that client's tab, and an email to
+the client with `replyTo` set to the person enquiring. The client's address is
+looked up from the `SITES` registry **inside the script** and is never read
+from the payload — the Web App URL is unauthenticated, so a `to` field in the
+request would make it an open relay. A site sends only its short key; an
+unknown key is written to `Unrouted site enquiries` and emails nobody. Before
+this existed every client build fell back to `mailto:`, which silently loses
+the enquiry whenever the visitor does not finish the job in their own mail app.
+
 ### The questionnaire at /start
 
 `IntakeForm` → `POST /api/intake` → the **same** Apps Script, with `form:
